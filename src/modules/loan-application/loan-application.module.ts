@@ -17,4 +17,3 @@ import {
   providers: [LoanApplicationService],
 })
 export class LoanApplicationModule {}
-

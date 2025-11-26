@@ -10,7 +10,7 @@ export class PartnerService {
     @InjectModel(Partner.name) private partnerModel: Model<PartnerDocument>,
   ) {}
 
-  async create(createPartnerDto: CreatePartnerDto): Promise<Partner> {
+  async create(createPartnerDto: CreatePartnerDto): Promise<PartnerDocument> {
     const createdPartner = new this.partnerModel(createPartnerDto);
     return createdPartner.save();
   }

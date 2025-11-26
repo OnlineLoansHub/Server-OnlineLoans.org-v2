@@ -10,7 +10,7 @@ export class ContactService {
     @InjectModel(Contact.name) private contactModel: Model<ContactDocument>,
   ) {}
 
-  async create(createContactDto: CreateContactDto): Promise<Contact> {
+  async create(createContactDto: CreateContactDto): Promise<ContactDocument> {
     const createdContact = new this.contactModel(createContactDto);
     return createdContact.save();
   }
@@ -19,7 +19,7 @@ export class ContactService {
     return this.contactModel.find().sort({ createdAt: -1 }).limit(100).exec();
   }
 
-  async findOne(id: string): Promise<Contact> {
+  async findOne(id: string): Promise<ContactDocument | null> {
     return this.contactModel.findById(id).exec();
   }
 }

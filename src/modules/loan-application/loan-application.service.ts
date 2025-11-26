@@ -16,7 +16,7 @@ export class LoanApplicationService {
 
   async create(
     createLoanApplicationDto: CreateLoanApplicationDto,
-  ): Promise<LoanApplication> {
+  ): Promise<LoanApplicationDocument> {
     const createdApplication = new this.loanApplicationModel(
       createLoanApplicationDto,
     );
