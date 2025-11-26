@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type TrackingDocument = Tracking & Document;
+export type ImpressionDocument = Impression & Document;
 
-@Schema({ timestamps: true })
-export class Tracking {
+@Schema({ timestamps: true, collection: 'Impressions' })
+export class Impression {
   @Prop({ type: String, default: '' })
   userIp: string;
 
@@ -47,9 +47,6 @@ export class Tracking {
   @Prop({ type: String, default: '' })
   sub10: string;
 
-  @Prop({ type: String, default: 'unCompleted' })
-  formStatus: string;
-
   @Prop({
     type: {
       country: { type: String, default: '' },
@@ -72,5 +69,5 @@ export class Tracking {
   };
 }
 
-export const TrackingSchema = SchemaFactory.createForClass(Tracking);
+export const ImpressionSchema = SchemaFactory.createForClass(Impression);
 

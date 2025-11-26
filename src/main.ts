@@ -29,7 +29,7 @@ async function bootstrap() {
     .addTag('health', 'Health check endpoints')
     .addTag('contact', 'Contact form endpoints')
     .addTag('partner', 'Partner endpoints')
-    .addTag('tracking', 'Visitor tracking endpoints')
+    .addTag('impression', 'Visitor impression endpoints')
     .build();
 
   const document = SwaggerModule.createDocument(app, config, {

@@ -2,23 +2,23 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Request } from 'express';
-import { Tracking, TrackingDocument } from './tracking.schema';
+import { Impression, ImpressionDocument } from './impression.schema';
 import {
   extractIp,
   extractReferrer,
   detectDeviceType,
   parseSubsFromReferrer,
   geoLookup,
-} from './utils/tracking.utils';
+} from './utils/impression.utils';
 
 @Injectable()
-export class TrackingService {
+export class ImpressionService {
   constructor(
-    @InjectModel(Tracking.name)
-    private trackingModel: Model<TrackingDocument>,
+    @InjectModel(Impression.name)
+    private impressionModel: Model<ImpressionDocument>,
   ) {}
 
-  async createTracking(req: Request): Promise<TrackingDocument> {
+  async createImpression(req: Request): Promise<ImpressionDocument> {
     const userIp = extractIp(req) || '';
     const userAgent = req.headers['user-agent'] || '';
     const referrer = extractReferrer(req) || '';
@@ -27,7 +27,7 @@ export class TrackingService {
     const subs = parseSubsFromReferrer(referrer);
 
     // Ensure all fields are always present, even if empty
-    const trackingData = {
+    const impressionData = {
       userIp: userIp || '',
       userAgent: userAgent || '',
       referrer: referrer || '',
@@ -42,7 +42,6 @@ export class TrackingService {
       sub8: subs.sub8 || '',
       sub9: subs.sub9 || '',
       sub10: subs.sub10 || '',
-      formStatus: 'unCompleted',
       geo: {
         country: geo?.country || '',
         region: geo?.region || '',
@@ -53,16 +52,16 @@ export class TrackingService {
       },
     };
 
-    const tracking = new this.trackingModel(trackingData);
-    return tracking.save();
+    const impression = new this.impressionModel(impressionData);
+    return impression.save();
   }
 
-  async findAll(): Promise<Tracking[]> {
-    return this.trackingModel.find().sort({ createdAt: -1 }).limit(100).exec();
+  async findAll(): Promise<Impression[]> {
+    return this.impressionModel.find().sort({ createdAt: -1 }).limit(100).exec();
   }
 
-  async findOne(id: string): Promise<TrackingDocument | null> {
-    return this.trackingModel.findById(id).exec();
+  async findOne(id: string): Promise<ImpressionDocument | null> {
+    return this.impressionModel.findById(id).exec();
   }
 }
 
