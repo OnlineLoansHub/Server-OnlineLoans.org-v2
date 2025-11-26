@@ -50,6 +50,8 @@ export class ImpressionService {
         lat: geo?.lat || null,
         lon: geo?.lon || null,
       },
+      form: {},
+      hasFormData: false,
     };
 
     const impression = new this.impressionModel(impressionData);
@@ -107,6 +109,37 @@ export class ImpressionService {
 
   async findOne(id: string): Promise<ImpressionDocument | null> {
     return this.impressionModel.findById(id).exec();
+  }
+
+  async updateForm(id: string, formData: Record<string, any>): Promise<ImpressionDocument | null> {
+    const impression = await this.impressionModel.findById(id).exec();
+    if (!impression) {
+      return null;
+    }
+
+    // Merge the new form data with existing form data
+    const updatedForm = {
+      ...(impression.form || {}),
+      ...formData,
+    };
+
+    // Check if form has any data (has at least one key with a non-empty value)
+    const hasFormData = Object.keys(updatedForm).length > 0 && 
+      Object.values(updatedForm).some(value => {
+        if (value === null || value === undefined) return false;
+        if (typeof value === 'string' && value.trim() === '') return false;
+        if (typeof value === 'object' && Object.keys(value).length === 0) return false;
+        return true;
+      });
+
+    // Update both form and hasFormData fields
+    const updated = await this.impressionModel.findByIdAndUpdate(
+      id,
+      { $set: { form: updatedForm, hasFormData } },
+      { new: true, runValidators: true },
+    ).exec();
+
+    return updated;
   }
 }
 

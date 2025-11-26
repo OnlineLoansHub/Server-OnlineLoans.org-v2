@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 export type ImpressionDocument = Impression & Document;
 
-@Schema({ timestamps: true, collection: 'Impressions' })
+@Schema({ timestamps: true, collection: 'Impressions', minimize: false })
 export class Impression {
   @Prop({ type: String, default: '' })
   userIp: string;
@@ -67,6 +67,12 @@ export class Impression {
     lat: number | null;
     lon: number | null;
   };
+
+  @Prop({ type: Object, default: () => ({}), required: true })
+  form: Record<string, any>;
+
+  @Prop({ type: Boolean, default: false })
+  hasFormData: boolean;
 }
 
 export const ImpressionSchema = SchemaFactory.createForClass(Impression);
