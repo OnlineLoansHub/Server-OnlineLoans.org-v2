@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { MongoDbModule } from './database/mongodb.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { PartnerModule } from './modules/partner/partner.module';
 import { LoanApplicationModule } from './modules/loan-application/loan-application.module';
@@ -10,12 +12,24 @@ import { LoanApplicationModule } from './modules/loan-application/loan-applicati
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot(
-      process.env.MONGODB_URI || 'mongodb://localhost:27017/onlineloans',
-    ),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60,
+          limit: 20,
+        },
+      ],
+    }),
+    MongoDbModule,
     ContactModule,
     PartnerModule,
     LoanApplicationModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}
