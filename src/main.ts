@@ -26,6 +26,7 @@ async function bootstrap() {
     .setTitle('OnlineLoans.org API')
     .setDescription('API documentation for OnlineLoans.org server')
     .setVersion('1.0')
+    .addTag('health', 'Health check endpoints')
     .addTag('contact', 'Contact form endpoints')
     .addTag('loan-application', 'Loan application endpoints')
     .addTag('partner', 'Partner endpoints')

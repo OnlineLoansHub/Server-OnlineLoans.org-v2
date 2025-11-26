@@ -7,9 +7,11 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { PartnerService } from './partner.service';
 import { CreatePartnerDto } from './dto/create-partner.dto';
 
+@ApiTags('partner')
 @Controller('api/partner')
 export class PartnerController {
   constructor(private readonly partnerService: PartnerService) {}

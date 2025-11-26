@@ -7,9 +7,11 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { LoanApplicationService } from './loan-application.service';
 import { CreateLoanApplicationDto } from './dto/create-loan-application.dto';
 
+@ApiTags('loan-application')
 @Controller('api/loan-application')
 export class LoanApplicationController {
   constructor(
