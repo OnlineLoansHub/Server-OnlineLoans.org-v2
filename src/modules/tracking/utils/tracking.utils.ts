@@ -30,33 +30,12 @@ export function extractIp(req: Request): string {
 }
 
 /**
- * Extract full URL from request including all query parameters
- */
-export function extractFullUrl(req: Request): string {
-  const protocol = req.protocol || 'http';
-  const host = req.get('host') || 'unknown';
-  const originalUrl = req.originalUrl || req.url || '';
-  return `${protocol}://${host}${originalUrl}`;
-}
-
-/**
  * Extract referrer from request headers
  */
 export function extractReferrer(req: Request): string {
   const referer = req.headers.referer || req.headers.referrer;
   if (referer) {
     return Array.isArray(referer) ? referer[0] : referer;
-  }
-  return '';
-}
-
-/**
- * Extract origin from request headers
- */
-export function extractOrigin(req: Request): string {
-  const origin = req.headers.origin;
-  if (origin) {
-    return Array.isArray(origin) ? origin[0] : origin;
   }
   return '';
 }

@@ -42,7 +42,7 @@ export class TrackingService {
       sub8: subs.sub8 || '',
       sub9: subs.sub9 || '',
       sub10: subs.sub10 || '',
-      form: 'unCompleted',
+      formStatus: 'unCompleted',
       geo: {
         country: geo?.country || '',
         region: geo?.region || '',

@@ -48,7 +48,7 @@ export class Tracking {
   sub10: string;
 
   @Prop({ type: String, default: 'unCompleted' })
-  form: string;
+  formStatus: string;
 
   @Prop({
     type: {
