@@ -1,0 +1,76 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+
+export type TrackingDocument = Tracking & Document;
+
+@Schema({ timestamps: true })
+export class Tracking {
+  @Prop({ type: String, default: '' })
+  userIp: string;
+
+  @Prop({ type: String, default: '' })
+  userAgent: string;
+
+  @Prop({ type: String, default: '' })
+  referrer: string;
+
+  @Prop({ enum: ['mobile', 'desktop', 'tablet'], default: 'desktop' })
+  deviceType: 'mobile' | 'desktop' | 'tablet';
+
+  @Prop({ type: String, default: '' })
+  sub1: string;
+
+  @Prop({ type: String, default: '' })
+  sub2: string;
+
+  @Prop({ type: String, default: '' })
+  sub3: string;
+
+  @Prop({ type: String, default: '' })
+  sub4: string;
+
+  @Prop({ type: String, default: '' })
+  sub5: string;
+
+  @Prop({ type: String, default: '' })
+  sub6: string;
+
+  @Prop({ type: String, default: '' })
+  sub7: string;
+
+  @Prop({ type: String, default: '' })
+  sub8: string;
+
+  @Prop({ type: String, default: '' })
+  sub9: string;
+
+  @Prop({ type: String, default: '' })
+  sub10: string;
+
+  @Prop({ type: String, default: 'unCompleted' })
+  form: string;
+
+  @Prop({
+    type: {
+      country: { type: String, default: '' },
+      region: { type: String, default: '' },
+      city: { type: String, default: '' },
+      timezone: { type: String, default: '' },
+      lat: { type: Number, default: null },
+      lon: { type: Number, default: null },
+    },
+    _id: false,
+    default: {},
+  })
+  geo: {
+    country: string;
+    region: string;
+    city: string;
+    timezone: string;
+    lat: number | null;
+    lon: number | null;
+  };
+}
+
+export const TrackingSchema = SchemaFactory.createForClass(Tracking);
+

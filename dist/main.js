@@ -25,6 +25,7 @@ async function bootstrap() {
         .addTag('health', 'Health check endpoints')
         .addTag('contact', 'Contact form endpoints')
         .addTag('partner', 'Partner endpoints')
+        .addTag('tracking', 'Visitor tracking endpoints')
         .build();
     const document = swagger_1.SwaggerModule.createDocument(app, config, {
         operationIdFactory: (controllerKey, methodKey) => methodKey,

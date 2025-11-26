@@ -7,6 +7,7 @@ import { ServicesModule } from './services/services.module';
 import { HealthModule } from './modules/health/health.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { PartnerModule } from './modules/partner/partner.module';
+import { TrackingModule } from './modules/tracking/tracking.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PartnerModule } from './modules/partner/partner.module';
     HealthModule,
     ContactModule,
     PartnerModule,
+    TrackingModule,
   ],
   providers: [
     {
