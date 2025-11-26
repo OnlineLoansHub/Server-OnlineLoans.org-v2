@@ -16,7 +16,6 @@ const services_module_1 = require("./services/services.module");
 const health_module_1 = require("./modules/health/health.module");
 const contact_module_1 = require("./modules/contact/contact.module");
 const partner_module_1 = require("./modules/partner/partner.module");
-const loan_application_module_1 = require("./modules/loan-application/loan-application.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -39,7 +38,6 @@ exports.AppModule = AppModule = __decorate([
             health_module_1.HealthModule,
             contact_module_1.ContactModule,
             partner_module_1.PartnerModule,
-            loan_application_module_1.LoanApplicationModule,
         ],
         providers: [
             {

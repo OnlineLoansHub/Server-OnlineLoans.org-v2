@@ -7,7 +7,6 @@ import { ServicesModule } from './services/services.module';
 import { HealthModule } from './modules/health/health.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { PartnerModule } from './modules/partner/partner.module';
-import { LoanApplicationModule } from './modules/loan-application/loan-application.module';
 
 @Module({
   imports: [
@@ -27,7 +26,6 @@ import { LoanApplicationModule } from './modules/loan-application/loan-applicati
     HealthModule,
     ContactModule,
     PartnerModule,
-    LoanApplicationModule,
   ],
   providers: [
     {

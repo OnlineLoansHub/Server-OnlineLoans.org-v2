@@ -5,7 +5,6 @@
  * - Health: /health, /health/ping
  * - Contact: POST/GET /api/contact
  * - Partner: POST/GET /api/partner
- * - Loan Application: POST/GET /api/loan-application
  * 
  * Run with: npm run test:e2e
  */
@@ -212,95 +211,5 @@ describe('App E2E Tests', () => {
     });
   });
 
-  describe('Loan Application Module', () => {
-    let applicationId: string;
-
-    const validLoanApplicationData = {
-      loanType: 'personal',
-      amount: '50000',
-      email: 'applicant@example.com',
-      phone: '+1234567890',
-    };
-
-    it('POST /api/loan-application - should create a loan application', () => {
-      return request(app.getHttpServer())
-        .post('/api/loan-application')
-        .send(validLoanApplicationData)
-        .expect(201)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('message');
-          expect(res.body).toHaveProperty('id');
-          applicationId = res.body.id;
-        });
-    });
-
-    it('POST /api/loan-application - should accept business loan type', () => {
-      return request(app.getHttpServer())
-        .post('/api/loan-application')
-        .send({
-          ...validLoanApplicationData,
-          loanType: 'business',
-          email: 'business@example.com',
-        })
-        .expect(201);
-    });
-
-    it('POST /api/loan-application - should reject invalid loan type', () => {
-      return request(app.getHttpServer())
-        .post('/api/loan-application')
-        .send({
-          ...validLoanApplicationData,
-          loanType: 'invalid-type',
-        })
-        .expect(400);
-    });
-
-    it('POST /api/loan-application - should reject invalid email', () => {
-      return request(app.getHttpServer())
-        .post('/api/loan-application')
-        .send({
-          ...validLoanApplicationData,
-          email: 'invalid-email',
-        })
-        .expect(400);
-    });
-
-    it('POST /api/loan-application - should accept optional phone and additionalData', () => {
-      return request(app.getHttpServer())
-        .post('/api/loan-application')
-        .send({
-          loanType: 'personal',
-          amount: '30000',
-          email: 'optional@example.com',
-          phone: '+9876543210',
-          additionalData: {
-            customField: 'customValue',
-          },
-        })
-        .expect(201);
-    });
-
-    it('GET /api/loan-application - should return all loan applications', () => {
-      return request(app.getHttpServer())
-        .get('/api/loan-application')
-        .expect(200)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('applications');
-          expect(Array.isArray(res.body.applications)).toBe(true);
-        });
-    });
-
-    it('GET /api/loan-application/:id - should return a specific loan application', () => {
-      return request(app.getHttpServer())
-        .get(`/api/loan-application/${applicationId}`)
-        .expect(200)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('application');
-          expect(res.body.application).toHaveProperty('_id', applicationId);
-          expect(res.body.application).toHaveProperty('email', validLoanApplicationData.email);
-          expect(res.body.application).toHaveProperty('loanType', validLoanApplicationData.loanType);
-        });
-    });
-  });
 });
 
