@@ -60,6 +60,51 @@ export class ImpressionService {
     return this.impressionModel.find().sort({ createdAt: -1 }).limit(100).exec();
   }
 
+  async findByFilter(filters: Record<string, any>): Promise<Impression[]> {
+    const filter: any = {};
+
+    // Handle string fields
+    if (filters.userIp) filter.userIp = filters.userIp;
+    if (filters.userAgent) filter.userAgent = { $regex: filters.userAgent, $options: 'i' };
+    if (filters.referrer) filter.referrer = { $regex: filters.referrer, $options: 'i' };
+    if (filters.deviceType) filter.deviceType = filters.deviceType;
+    
+    // Handle sub parameters
+    for (let i = 1; i <= 10; i++) {
+      const subKey = `sub${i}`;
+      if (filters[subKey]) {
+        filter[subKey] = filters[subKey];
+      }
+    }
+
+    // Handle geo fields
+    if (filters['geo.country']) filter['geo.country'] = filters['geo.country'];
+    if (filters['geo.region']) filter['geo.region'] = filters['geo.region'];
+    if (filters['geo.city']) filter['geo.city'] = { $regex: filters['geo.city'], $options: 'i' };
+    if (filters['geo.timezone']) filter['geo.timezone'] = filters['geo.timezone'];
+
+    // Handle date range filters
+    if (filters.createdAfter || filters.createdBefore) {
+      filter.createdAt = {};
+      if (filters.createdAfter) {
+        filter.createdAt.$gte = new Date(filters.createdAfter);
+      }
+      if (filters.createdBefore) {
+        filter.createdAt.$lte = new Date(filters.createdBefore);
+      }
+    }
+
+    // Default limit and sorting
+    const limit = filters.limit ? parseInt(filters.limit, 10) : 100;
+    const sort: any = filters.sort === 'asc' ? { createdAt: 1 } : { createdAt: -1 };
+
+    return this.impressionModel
+      .find(filter)
+      .sort(sort)
+      .limit(limit)
+      .exec();
+  }
+
   async findOne(id: string): Promise<ImpressionDocument | null> {
     return this.impressionModel.findById(id).exec();
   }

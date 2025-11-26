@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, HttpCode, HttpStatus, Req, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Param, HttpCode, HttpStatus, Req, Query, NotFoundException } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { ImpressionService } from './impression.service';
@@ -34,8 +34,8 @@ export class ImpressionController {
   }
 
   @Get()
-  async findAll() {
-    const impressions = await this.impressionService.findAll();
+  async findAll(@Query() query: Record<string, any>) {
+    const impressions = await this.impressionService.findByFilter(query);
     return { impressions };
   }
 
