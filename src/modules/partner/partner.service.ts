@@ -19,7 +19,7 @@ export class PartnerService {
     return this.partnerModel.find().sort({ createdAt: -1 }).limit(100).exec();
   }
 
-  async findOne(id: string): Promise<Partner> {
+  async findOne(id: string): Promise<PartnerDocument | null> {
     return this.partnerModel.findById(id).exec();
   }
 }
