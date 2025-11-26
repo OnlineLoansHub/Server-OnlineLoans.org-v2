@@ -31,7 +31,7 @@ export class LoanApplicationService {
       .exec();
   }
 
-  async findOne(id: string): Promise<LoanApplication> {
+  async findOne(id: string): Promise<LoanApplicationDocument | null> {
     return this.loanApplicationModel.findById(id).exec();
   }
 }
