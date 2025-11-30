@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border-radius: 12px;
+        }
+
+        .navbar-brand {
+            color: white;
+            font-size: 1.5em;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .navbar-nav {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+        }
+
+        .navbar-nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        .navbar-nav a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .navbar-nav a.active {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            padding: 25px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        .form-group {
+            flex-shrink: 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .form-row input {
+            padding: 12px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+            width: 400px;
+        }
+
+        .form-row input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 150px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .section {
+            padding: 30px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        td {
+            padding: 12px 15px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #495057;
+            vertical-align: top;
+        }
+
+        .id-cell {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            color: #667eea;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .id-cell:hover {
+            color: #5568d3;
+            text-decoration: underline;
+        }
+
+        .id-cell::after {
+            content: ' 📋';
+            opacity: 0;
+            transition: opacity 0.2s;
+            font-size: 10px;
+        }
+
+        .id-cell:hover::after {
+            opacity: 0.6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #c33;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #6c757d;
+        }
+
+        .stats-section {
+            padding: 25px 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .label {
+            font-size: 14px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .message-cell {
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/index.html" class="navbar-brand">📊 Dashboard</a>
+        <ul class="navbar-nav">
+            <li><a href="/index.html">Impressions</a></li>
+            <li><a href="/contact.html" class="active">Contact Us</a></li>
+            <li><a href="/partner.html">Partner With Us</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <div class="header">
+            <h1>📧 Contact Us Submissions</h1>
+            <p>View all contact form submissions</p>
+        </div>
+
+        <div class="controls">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>API URL</label>
+                    <input 
+                        type="text" 
+                        id="apiUrl" 
+                        placeholder="API URL (e.g., https://server-ol-v2-fcaa9dab215e.herokuapp.com/api/contact)"
+                        value="https://server-ol-v2-fcaa9dab215e.herokuapp.com/api/contact"
+                    >
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button onclick="loadContacts()">🔍 Submit</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="content">
+            <div class="empty-state">
+                <h2>Ready to search</h2>
+                <p>Enter your API URL and click "Submit" to load contacts</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL_KEY = 'contacts_api_url';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUrl = localStorage.getItem(API_URL_KEY);
+            if (savedUrl) {
+                document.getElementById('apiUrl').value = savedUrl;
+            }
+        });
+
+        document.getElementById('apiUrl').addEventListener('change', (e) => {
+            localStorage.setItem(API_URL_KEY, e.target.value);
+        });
+
+        async function loadContacts() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const contentDiv = document.getElementById('content');
+
+            if (!apiUrl) {
+                showError('Please enter an API URL');
+                return;
+            }
+
+            contentDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading contacts...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const contacts = data.contacts || [];
+
+                if (contacts.length === 0) {
+                    contentDiv.innerHTML = `
+                        <div class="empty-state">
+                            <h2>No contacts found</h2>
+                            <p>No contact submissions available</p>
+                        </div>
+                    `;
+                } else {
+                    contentDiv.innerHTML = createContactsTable(contacts);
+                }
+            } catch (error) {
+                showError(`Error loading contacts: ${error.message}`);
+            }
+        }
+
+        function createContactsTable(contacts) {
+            let html = `
+                <div class="stats-section">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="number">${contacts.length}</div>
+                            <div class="label">Total Contacts</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Subject</th>
+                                    <th>Message</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+
+            contacts.forEach(contact => {
+                const id = contact._id || contact.id;
+                const date = contact.createdAt ? 
+                    new Date(contact.createdAt).toLocaleString() : 
+                    'N/A';
+
+                html += `
+                    <tr>
+                        <td class="id-cell" onclick="copyToClipboard('${id}')" title="Click to copy ID">${id}</td>
+                        <td>${date}</td>
+                        <td>${contact.name || '—'}</td>
+                        <td>${contact.email || '—'}</td>
+                        <td>${contact.phone || '—'}</td>
+                        <td>${contact.subject || '—'}</td>
+                        <td class="message-cell">${contact.message || '—'}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                console.log('Copied to clipboard:', text);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                } catch (err) {
+                    console.error('Fallback copy failed:', err);
+                }
+                document.body.removeChild(textArea);
+            });
+        }
+
+        function showError(message) {
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = `
+                <div class="error">
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+        }
+
+        document.getElementById('apiUrl').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadContacts();
+        });
+    </script>
+</body>
+</html>
+
