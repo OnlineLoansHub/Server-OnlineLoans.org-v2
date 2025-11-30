@@ -59,13 +59,10 @@ export class ImpressionController {
       type: 'object',
       additionalProperties: true,
       example: {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@example.com',
-        phone: '+1234567890',
-        step1: 'completed',
-        step2: 'in-progress',
-        customField: 'any value',
+        date: '2025-11-30',
+        formName: 'business-loan',
+        step1Question: 'How much money do you need?',
+        step1Answer: '10000',
       },
     },
   })
