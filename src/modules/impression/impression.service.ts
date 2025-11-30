@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Request } from 'express';
+import { ConfigService } from '@nestjs/config';
 import { Impression, ImpressionDocument } from './impression.schema';
+import { TelegramService } from '../../services/telegram/telegram.service';
 import {
   extractIp,
   extractReferrer,
@@ -16,6 +18,8 @@ export class ImpressionService {
   constructor(
     @InjectModel(Impression.name)
     private impressionModel: Model<ImpressionDocument>,
+    private telegramService: TelegramService,
+    private configService: ConfigService,
   ) {}
 
   async createImpression(req: Request): Promise<ImpressionDocument> {
@@ -55,7 +59,24 @@ export class ImpressionService {
     };
 
     const impression = new this.impressionModel(impressionData);
-    return impression.save();
+    const savedImpression = await impression.save();
+
+    // Send Telegram notification
+    const botToken = this.configService.get<string>('TG_IMP_BOT_ID');
+    const groupId = this.configService.get<string>('TG_IMP_GROUP_ID');
+    
+    if (botToken && groupId) {
+      // Convert to plain object to include all fields
+      const impressionData = savedImpression.toObject();
+      this.telegramService
+        .notifyNewImpression(botToken, groupId, impressionData)
+        .catch((error) => {
+          // Log error but don't fail the impression creation
+          console.error('Failed to send Telegram notification:', error);
+        });
+    }
+
+    return savedImpression;
   }
 
   async findAll(): Promise<Impression[]> {

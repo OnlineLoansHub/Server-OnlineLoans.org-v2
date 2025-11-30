@@ -119,5 +119,97 @@ ${applicationData.phone ? `📞 <b>Phone:</b> ${applicationData.phone}` : ''}
 
     return this.sendMessage(message);
   }
+
+  /**
+   * Send a message using custom bot token and chat ID
+   */
+  async sendMessageWithCredentials(
+    botToken: string,
+    chatId: string,
+    message: string,
+  ): Promise<boolean> {
+    if (!botToken || !chatId) {
+      this.logger.warn('Bot token or chat ID not provided. Message not sent.');
+      return false;
+    }
+
+    try {
+      const apiUrl = `https://api.telegram.org/bot${botToken}`;
+      const response = await fetch(`${apiUrl}/sendMessage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message,
+          parse_mode: 'HTML',
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        this.logger.error(`Failed to send Telegram message: ${JSON.stringify(error)}`);
+        return false;
+      }
+
+      this.logger.log('Telegram message sent successfully');
+      return true;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Error sending Telegram message: ${errorMessage}`);
+      return false;
+    }
+  }
+
+  /**
+   * Send a formatted notification about a new impression
+   */
+  async notifyNewImpression(
+    botToken: string,
+    chatId: string,
+    impressionData: any,
+  ): Promise<boolean> {
+    const formatValue = (value: any): string => {
+      if (value === null || value === undefined) return 'N/A';
+      if (typeof value === 'object') return JSON.stringify(value);
+      if (typeof value === 'string' && value.length > 100) return value.substring(0, 100) + '...';
+      return String(value);
+    };
+
+    const message = `
+👁️ <b>New Impression</b>
+
+🆔 <b>ID:</b> <code>${impressionData._id || impressionData.id}</code>
+🌐 <b>IP:</b> ${formatValue(impressionData.userIp)}
+📱 <b>Device Type:</b> ${formatValue(impressionData.deviceType)}
+🖥️ <b>User Agent:</b> ${formatValue(impressionData.userAgent)}
+🔗 <b>Referrer:</b> ${formatValue(impressionData.referrer)}
+
+📊 <b>Sub Parameters:</b>
+${impressionData.sub1 ? `  • Sub1: ${formatValue(impressionData.sub1)}` : ''}
+${impressionData.sub2 ? `  • Sub2: ${formatValue(impressionData.sub2)}` : ''}
+${impressionData.sub3 ? `  • Sub3: ${formatValue(impressionData.sub3)}` : ''}
+${impressionData.sub4 ? `  • Sub4: ${formatValue(impressionData.sub4)}` : ''}
+${impressionData.sub5 ? `  • Sub5: ${formatValue(impressionData.sub5)}` : ''}
+${impressionData.sub6 ? `  • Sub6: ${formatValue(impressionData.sub6)}` : ''}
+${impressionData.sub7 ? `  • Sub7: ${formatValue(impressionData.sub7)}` : ''}
+${impressionData.sub8 ? `  • Sub8: ${formatValue(impressionData.sub8)}` : ''}
+${impressionData.sub9 ? `  • Sub9: ${formatValue(impressionData.sub9)}` : ''}
+${impressionData.sub10 ? `  • Sub10: ${formatValue(impressionData.sub10)}` : ''}
+
+🌍 <b>Geo Location:</b>
+${impressionData.geo?.country ? `  • Country: ${formatValue(impressionData.geo.country)}` : ''}
+${impressionData.geo?.region ? `  • Region: ${formatValue(impressionData.geo.region)}` : ''}
+${impressionData.geo?.city ? `  • City: ${formatValue(impressionData.geo.city)}` : ''}
+${impressionData.geo?.timezone ? `  • Timezone: ${formatValue(impressionData.geo.timezone)}` : ''}
+${impressionData.geo?.lat ? `  • Latitude: ${formatValue(impressionData.geo.lat)}` : ''}
+${impressionData.geo?.lon ? `  • Longitude: ${formatValue(impressionData.geo.lon)}` : ''}
+
+⏰ <b>Created:</b> ${impressionData.createdAt ? new Date(impressionData.createdAt).toLocaleString() : new Date().toLocaleString()}
+    `.trim();
+
+    return this.sendMessageWithCredentials(botToken, chatId, message);
+  }
 }
 
