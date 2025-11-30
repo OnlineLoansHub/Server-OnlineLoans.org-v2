@@ -180,11 +180,15 @@
         th {
             padding: 15px;
             text-align: left;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             white-space: nowrap;
+        }
+
+        th:first-child {
+            max-width: 150px;
         }
 
         tbody tr {
@@ -199,6 +203,7 @@
         td {
             padding: 12px 15px;
             font-size: 13px;
+            font-weight: 500;
             color: #495057;
             vertical-align: top;
         }
@@ -229,8 +234,32 @@
 
         .id-cell {
             font-family: 'Courier New', monospace;
-            font-size: 11px;
+            font-size: 10px;
+            font-weight: 600;
             color: #667eea;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+        }
+
+        .id-cell:hover {
+            color: #5568d3;
+            text-decoration: underline;
+        }
+
+        .id-cell::after {
+            content: ' 📋';
+            opacity: 0;
+            transition: opacity 0.2s;
+            font-size: 10px;
+        }
+
+        .id-cell:hover::after {
+            opacity: 0.6;
         }
 
         .geo-info {
@@ -551,7 +580,7 @@
 
                 html += `
                     <tr>
-                        <td class="id-cell">${id}</td>
+                        <td class="id-cell" onclick="copyToClipboard('${id}')" title="Click to copy ID">${id}</td>
                         <td>${date}</td>
                         <td>${impression.userIp || 'N/A'}</td>
                         <td>${deviceBadge}</td>
@@ -610,7 +639,7 @@
                 const formName = form.formName || form.name || '—';
 
                 html += '<tr>';
-                html += `<td class="id-cell">${id}</td>`;
+                html += `<td class="id-cell" onclick="copyToClipboard('${id}')" title="Click to copy ID">${id}</td>`;
                 html += `<td>${date}</td>`;
                 html += `<td class="form-field">${formName}</td>`;
 
@@ -670,6 +699,33 @@
                     <strong>Error:</strong> ${message}
                 </div>
             `;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show temporary feedback
+                const event = new CustomEvent('idCopied', { detail: text });
+                document.dispatchEvent(event);
+                
+                // Visual feedback - you could add a toast notification here
+                console.log('Copied to clipboard:', text);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    console.log('Copied to clipboard (fallback):', text);
+                } catch (err) {
+                    console.error('Fallback copy failed:', err);
+                }
+                document.body.removeChild(textArea);
+            });
         }
 
         // Allow Enter key to submit
