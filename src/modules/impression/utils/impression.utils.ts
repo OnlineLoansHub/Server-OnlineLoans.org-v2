@@ -33,7 +33,7 @@ export function extractIp(req: Request): string {
  * Extract referrer from request headers
  */
 export function extractReferrer(req: Request): string {
-  const referer = req.headers.referer || req.headers.referrer;
+  const referer = req.headers['x-referrer'] || req.headers.referer || req.headers.referrer;
   if (referer) {
     return Array.isArray(referer) ? referer[0] : referer;
   }

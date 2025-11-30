@@ -25,16 +25,16 @@ export class ImpressionService {
   async createImpression(req: Request): Promise<ImpressionDocument> {
     const userIp = extractIp(req) || '';
     const userAgent = req.headers['user-agent'] || '';
-    const referrer = extractReferrer(req) || '';
+    const xReferrer = extractReferrer(req) || '';
     const deviceType = detectDeviceType(userAgent);
     const geo = geoLookup(userIp);
-    const subs = parseSubsFromReferrer(referrer);
+    const subs = parseSubsFromReferrer(xReferrer);
 
     // Ensure all fields are always present, even if empty
     const impressionData = {
       userIp: userIp || '',
       userAgent: userAgent || '',
-      referrer: referrer || '',
+      referrer: xReferrer || '',
       deviceType,
       sub1: subs.sub1 || '',
       sub2: subs.sub2 || '',
