@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impressions Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            padding: 25px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        .form-row .form-group {
+            flex-shrink: 0;
+        }
+
+        .form-row .form-group:first-child {
+            
+        }
+
+        .form-row .form-group:nth-child(2) {
+           
+        }
+
+        .form-row .form-group:nth-child(3) {
+            width: 150px;
+        }
+
+        .form-row .form-group:nth-child(4) {
+            width: 150px;
+        }
+
+        .form-row input,
+        .form-row select {
+            padding: 12px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .form-row input:focus,
+        .form-row select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .section {
+            padding: 30px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        td {
+            padding: 12px 15px;
+            font-size: 13px;
+            color: #495057;
+            vertical-align: top;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-mobile {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-desktop {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .badge-tablet {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .id-cell {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #667eea;
+        }
+
+        .geo-info {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #c33;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #6c757d;
+        }
+
+        .form-field {
+            max-width: 200px;
+            word-wrap: break-word;
+        }
+
+        .form-field-empty {
+            color: #adb5bd;
+            font-style: italic;
+        }
+
+        .stats-section {
+            padding: 25px 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .label {
+            font-size: 14px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Impressions Viewer</h1>
+            <p>View all impressions and form submissions</p>
+        </div>
+
+        <div class="controls">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>API URL</label>
+                    <input 
+                        type="text" 
+                        id="apiUrl" 
+                        placeholder="API URL (e.g., http://localhost:3001/api/impression)"
+                        value="http://localhost:3001/api/impression"
+                    >
+                </div>
+                <div class="form-group">
+                    <label>Filter by Date</label>
+                    <input 
+                        type="date" 
+                        id="filterDate"
+                    >
+                </div>
+                <div class="form-group">
+                    <label>Date Filter Type</label>
+                    <select id="dateFilterType">
+                        <option value="exact">Exact Date</option>
+                        <option value="after">After Date</option>
+                        <option value="before">Before Date</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button onclick="loadImpressions()">🔍 Submit</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="content">
+            <div class="empty-state">
+                <h2>Ready to search</h2>
+                <p>Enter your API URL and click "Submit" to load impressions</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL_KEY = 'impressions_api_url';
+
+        // Load saved API URL and set today's date
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUrl = localStorage.getItem(API_URL_KEY);
+            if (savedUrl) {
+                document.getElementById('apiUrl').value = savedUrl;
+            }
+            
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('filterDate').value = today;
+        });
+
+        // Save API URL when changed
+        document.getElementById('apiUrl').addEventListener('change', (e) => {
+            localStorage.setItem(API_URL_KEY, e.target.value);
+        });
+
+        async function loadImpressions() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const filterDate = document.getElementById('filterDate').value;
+            const dateFilterType = document.getElementById('dateFilterType').value;
+            const contentDiv = document.getElementById('content');
+
+            if (!apiUrl) {
+                showError('Please enter an API URL');
+                return;
+            }
+
+            // Show loading state
+            contentDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading impressions...</p>
+                </div>
+            `;
+
+            try {
+                // Build URL with query parameters
+                let url = apiUrl;
+                const params = new URLSearchParams();
+                
+                if (filterDate) {
+                    if (dateFilterType === 'exact') {
+                        params.append('createdAfter', filterDate);
+                        params.append('createdBefore', filterDate + 'T23:59:59');
+                    } else if (dateFilterType === 'after') {
+                        params.append('createdAfter', filterDate);
+                    } else if (dateFilterType === 'before') {
+                        params.append('createdBefore', filterDate + 'T23:59:59');
+                    }
+                }
+
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                let impressions = data.impressions || [];
+
+                // Filter by exact date if needed
+                if (filterDate && dateFilterType === 'exact') {
+                    const filterDateObj = new Date(filterDate);
+                    impressions = impressions.filter(imp => {
+                        const impDate = new Date(imp.createdAt);
+                        return impDate.toDateString() === filterDateObj.toDateString();
+                    });
+                }
+
+                // Display tables
+                if (impressions.length === 0) {
+                    contentDiv.innerHTML = `
+                        <div class="empty-state">
+                            <h2>No impressions found</h2>
+                            <p>Try adjusting your date filter or create some impressions</p>
+                        </div>
+                    `;
+                } else {
+                    contentDiv.innerHTML = createTables(impressions);
+                }
+            } catch (error) {
+                showError(`Error loading impressions: ${error.message}`);
+            }
+        }
+
+        function createTables(impressions) {
+            // Separate impressions with and without form data
+            const withFormData = impressions.filter(imp => imp.hasFormData === true);
+            const withoutFormData = impressions.filter(imp => !imp.hasFormData || imp.hasFormData === false);
+
+            let html = '';
+
+            // Stats section at the top
+            html += `
+                <div class="stats-section">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="number">${impressions.length}</div>
+                            <div class="label">Total Impressions</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">${withFormData.length}</div>
+                            <div class="label">With Form Data</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">${withoutFormData.length}</div>
+                            <div class="label">Without Form Data</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Table 1: Impressions WITH form data (moved to top)
+            html += `
+                <div class="section">
+                    <h2 class="section-title">Impressions with Form Data</h2>
+                    <div class="table-wrapper">
+                        ${createFormDataTable(withFormData)}
+                    </div>
+                </div>
+            `;
+
+            // Table 2: All impressions (with or without form data)
+            html += `
+                <div class="section">
+                    <h2 class="section-title">All Impressions with or without Form Data</h2>
+                    <div class="table-wrapper">
+                        ${createAllImpressionsTable(impressions)}
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function createAllImpressionsTable(impressions) {
+            if (impressions.length === 0) {
+                return '<div class="empty-state"><p>No impressions without form data</p></div>';
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>IP Address</th>
+                            <th>Device</th>
+                            <th>Location</th>
+                            <th>Referrer</th>
+                            <th>Form Data</th>
+                            <th>Sub1</th>
+                            <th>Sub2</th>
+                            <th>Sub3</th>
+                            <th>Sub4</th>
+                            <th>Sub5</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            impressions.forEach(impression => {
+                const id = impression._id || impression.id;
+                const date = impression.createdAt ? 
+                    new Date(impression.createdAt).toLocaleString() : 
+                    'N/A';
+                const deviceBadge = getDeviceBadge(impression.deviceType);
+                const location = formatLocation(impression.geo);
+                const referrer = impression.referrer ? 
+                    (impression.referrer.length > 60 ? impression.referrer.substring(0, 60) + '...' : impression.referrer) 
+                    : '—';
+
+                const hasFormData = impression.hasFormData === true ? '✅ Yes' : '❌ No';
+
+                html += `
+                    <tr>
+                        <td class="id-cell">${id}</td>
+                        <td>${date}</td>
+                        <td>${impression.userIp || 'N/A'}</td>
+                        <td>${deviceBadge}</td>
+                        <td class="geo-info">${location}</td>
+                        <td title="${impression.referrer || ''}">${referrer}</td>
+                        <td>${hasFormData}</td>
+                        <td>${impression.sub1 || '—'}</td>
+                        <td>${impression.sub2 || '—'}</td>
+                        <td>${impression.sub3 || '—'}</td>
+                        <td>${impression.sub4 || '—'}</td>
+                        <td>${impression.sub5 || '—'}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            return html;
+        }
+
+        function createFormDataTable(impressions) {
+            if (impressions.length === 0) {
+                return '<div class="empty-state"><p>No impressions with form data</p></div>';
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Impression ID</th>
+                            <th>Date</th>
+                            <th>Form Name</th>
+            `;
+
+            // Add step columns (up to 10)
+            for (let i = 1; i <= 10; i++) {
+                html += `<th>Step-${i}</th>`;
+                html += `<th>Q-${i}</th>`;
+            }
+
+            html += `
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            impressions.forEach(impression => {
+                const id = impression._id || impression.id;
+                const date = impression.createdAt ? 
+                    new Date(impression.createdAt).toLocaleString() : 
+                    'N/A';
+                const form = impression.form || {};
+                const formName = form.formName || form.name || '—';
+
+                html += '<tr>';
+                html += `<td class="id-cell">${id}</td>`;
+                html += `<td>${date}</td>`;
+                html += `<td class="form-field">${formName}</td>`;
+
+                // Add step data (up to 10)
+                for (let i = 1; i <= 10; i++) {
+                    const question = form[`step${i}Question`] || form[`step${i}_question`] || form[`step${i}question`] || '—';
+                    const answer = form[`step${i}Answer`] || form[`step${i}_answer`] || form[`step${i}answer`] || '—';
+                    
+                    html += `<td class="form-field">${formatFormValue(question)}</td>`;
+                    html += `<td class="form-field">${formatFormValue(answer)}</td>`;
+                }
+
+                html += '</tr>';
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            return html;
+        }
+
+        function formatFormValue(value) {
+            if (!value || value === '—') {
+                return '<span class="form-field-empty">—</span>';
+            }
+            if (typeof value === 'object') {
+                return JSON.stringify(value);
+            }
+            const str = String(value);
+            return str.length > 50 ? str.substring(0, 50) + '...' : str;
+        }
+
+        function getDeviceBadge(deviceType) {
+            const badges = {
+                mobile: '<span class="badge badge-mobile">📱 Mobile</span>',
+                desktop: '<span class="badge badge-desktop">🖥️ Desktop</span>',
+                tablet: '<span class="badge badge-tablet">📱 Tablet</span>'
+            };
+            return badges[deviceType] || deviceType;
+        }
+
+        function formatLocation(geo) {
+            if (!geo) return 'N/A';
+            const parts = [];
+            if (geo.city) parts.push(geo.city);
+            if (geo.region) parts.push(geo.region);
+            if (geo.country) parts.push(geo.country);
+            return parts.length > 0 ? parts.join(', ') : 'N/A';
+        }
+
+        function showError(message) {
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = `
+                <div class="error">
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('apiUrl').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadImpressions();
+        });
+        document.getElementById('filterDate').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadImpressions();
+        });
+    </script>
+</body>
+</html>
