@@ -61,15 +61,15 @@ export class ImpressionService {
     const impression = new this.impressionModel(impressionData);
     const savedImpression = await impression.save();
 
-    // Send Telegram notification
+    // Send Telegram notification (skip if city is Shoresh)
     const botToken = this.configService.get<string>('TG_IMP_BOT_ID');
     const groupId = this.configService.get<string>('TG_IMP_GROUP_ID');
     
-    if (botToken && groupId) {
+    if (botToken && groupId && impressionData?.geo?.city !== 'Shoresh') {
       // Convert to plain object to include all fields
-      const impressionData = savedImpression.toObject();
+      const impressionObject = savedImpression.toObject();
       this.telegramService
-        .notifyNewImpression(botToken, groupId, impressionData)
+        .notifyNewImpression(botToken, groupId, impressionObject)
         .catch((error) => {
           // Log error but don't fail the impression creation
           console.error('Failed to send Telegram notification:', error);
