@@ -177,6 +177,18 @@ ${applicationData.phone ? `📞 <b>Phone:</b> ${applicationData.phone}` : ''}
       return String(value);
     };
 
+    const formatReferrer = (referrer: any): string => {
+      if (referrer === null || referrer === undefined) return 'N/A';
+      let referrerStr = String(referrer);
+      
+      // Remove https://www. or https:// from the beginning
+      referrerStr = referrerStr.replace(/^https:\/\/www\./i, '');
+      referrerStr = referrerStr.replace(/^https:\/\//i, '');
+      
+      if (referrerStr.length > 100) return referrerStr.substring(0, 100) + '...';
+      return referrerStr;
+    };
+
     const message = `
 👁️ <b>New Impression</b>
 
@@ -184,7 +196,7 @@ ${applicationData.phone ? `📞 <b>Phone:</b> ${applicationData.phone}` : ''}
 🌐 <b>IP:</b> ${formatValue(impressionData.userIp)}
 📱 <b>Device Type:</b> ${formatValue(impressionData.deviceType)}
 🖥️ <b>User Agent:</b> ${formatValue(impressionData.userAgent)}
-🔗 <b>Referrer:</b> ${formatValue(impressionData.referrer)}
+🔗 <b>Referrer:</b> ${formatReferrer(impressionData.referrer)}
 
 📊 <b>Sub Parameters:</b>
 ${impressionData.sub1 ? `  • Sub1: ${formatValue(impressionData.sub1)}` : ''}
