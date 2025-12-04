@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Param, HttpCode, HttpStatus, Req, Body, Query, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, HttpCode, HttpStatus, Req, Body, Query, NotFoundException } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { ImpressionService } from './impression.service';
@@ -101,6 +101,33 @@ export class ImpressionController {
       form: impression.form,
       hasFormData: impression.hasFormData,
       message: 'Form data updated successfully',
+    };
+  }
+
+  @Delete('cleanup')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ 
+    summary: 'Delete filtered impressions',
+    description: 'Deletes all impressions matching: geo.city = "Shoresh", referrer contains "localhost", or referrer contains "10.0.0.7"'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Impressions deleted successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        deletedCount: { type: 'number', example: 15 },
+        totalRemaining: { type: 'number', example: 1234 },
+        message: { type: 'string', example: 'Successfully deleted 15 impression(s). Total remaining: 1234' },
+      },
+    },
+  })
+  async deleteFilteredImpressions() {
+    const result = await this.impressionService.deleteFilteredImpressions();
+    return {
+      deletedCount: result.deletedCount,
+      totalRemaining: result.totalRemaining,
+      message: `Successfully deleted ${result.deletedCount} impression(s). Total remaining: ${result.totalRemaining}`,
     };
   }
 }

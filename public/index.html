@@ -425,6 +425,10 @@
                     <label>&nbsp;</label>
                     <button onclick="loadImpressions()">🔍 Submit</button>
                 </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button onclick="cleanupImpressions()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">🗑️ Cleanup</button>
+                </div>
             </div>
         </div>
 
@@ -766,6 +770,83 @@
                 }
                 document.body.removeChild(textArea);
             });
+        }
+
+        async function cleanupImpressions() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const contentDiv = document.getElementById('content');
+
+            if (!apiUrl) {
+                showError('Please enter an API URL');
+                return;
+            }
+
+            // Confirm deletion
+            const confirmed = confirm(
+                'This will delete all impressions where:\n' +
+                '• geo.city = "Shoresh"\n' +
+                '• referrer contains "localhost"\n' +
+                '• referrer contains "10.0.0.7"\n\n' +
+                'Are you sure you want to proceed?'
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            // Show loading state
+            contentDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Cleaning up impressions...</p>
+                </div>
+            `;
+
+            try {
+                // Build cleanup URL
+                const baseUrl = apiUrl.replace('/api/impression', '');
+                const cleanupUrl = `${baseUrl}/api/impression/cleanup`;
+
+                const response = await fetch(cleanupUrl, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Show success message
+                contentDiv.innerHTML = `
+                    <div class="stats-section">
+                        <div class="stats-grid">
+                            <div class="stat-card" style="background: #d4edda; border: 2px solid #28a745;">
+                                <div class="number" style="color: #155724;">${data.deletedCount}</div>
+                                <div class="label" style="color: #155724;">Deleted Impressions</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="number">${data.totalRemaining}</div>
+                                <div class="label">Remaining Impressions</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div style="padding: 20px; background: #d4edda; border-radius: 8px; border-left: 4px solid #28a745;">
+                            <h3 style="color: #155724; margin-bottom: 10px;">✅ Cleanup Complete</h3>
+                            <p style="color: #155724; margin-bottom: 5px;"><strong>${data.message}</strong></p>
+                            <p style="color: #155724; font-size: 14px; margin-top: 10px;">
+                                Click "Submit" to reload impressions and see the updated list.
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                showError(`Error during cleanup: ${error.message}`);
+            }
         }
 
         // Allow Enter key to submit

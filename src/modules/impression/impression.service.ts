@@ -162,5 +162,27 @@ export class ImpressionService {
 
     return updated;
   }
+
+  async deleteFilteredImpressions(): Promise<{ deletedCount: number; totalRemaining: number }> {
+    // Build query for documents to delete
+    const deleteQuery = {
+      $or: [
+        { 'geo.city': 'Shoresh' },
+        { referrer: { $regex: /localhost/i } },
+        { referrer: { $regex: /10\.0\.0\.7/i } },
+      ],
+    };
+
+    // Delete documents
+    const result = await this.impressionModel.deleteMany(deleteQuery);
+
+    // Count remaining documents
+    const totalRemaining = await this.impressionModel.countDocuments({});
+
+    return {
+      deletedCount: result.deletedCount,
+      totalRemaining,
+    };
+  }
 }
 
