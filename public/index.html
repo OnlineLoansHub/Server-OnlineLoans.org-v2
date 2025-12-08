@@ -74,14 +74,6 @@
             flex-shrink: 0;
         }
 
-
-        .form-row .form-group:nth-child(3) {
-        }
-
-        .form-row .form-group:nth-child(4) {
-           
-        }
-
         .form-row input,
         .form-row select {
             padding: 12px 15px;
@@ -154,14 +146,18 @@
 
         .table-wrapper {
             overflow-x: auto;
+            overflow-y: visible;
             border-radius: 8px;
             border: 1px solid #dee2e6;
+            max-width: 100%;
         }
 
         table {
-            width: 100%;
+            width: auto;
+            min-width: 100%;
             border-collapse: collapse;
             background: white;
+            table-layout: auto;
         }
 
         thead {
@@ -170,7 +166,7 @@
         }
 
         th {
-            padding: 15px;
+            padding: 5px 7px;
             text-align: left;
             font-weight: 700;
             font-size: 13px;
@@ -179,9 +175,6 @@
             white-space: nowrap;
         }
 
-        th:first-child {
-            max-width: 150px;
-        }
 
         tbody tr {
             border-bottom: 1px solid #e9ecef;
@@ -193,11 +186,13 @@
         }
 
         td {
-            padding: 12px 15px;
+            padding: 5px 7px;
             font-size: 13px;
             font-weight: 500;
             color: #495057;
-            vertical-align: top;
+            vertical-align: middle;
+            text-align: left;
+            white-space: nowrap;
         }
 
         .badge {
@@ -229,13 +224,10 @@
             font-size: 10px;
             font-weight: 600;
             color: #667eea;
-            max-width: 150px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
             cursor: pointer;
             position: relative;
             user-select: none;
+            white-space: nowrap;
         }
 
         .id-cell:hover {
@@ -296,8 +288,11 @@
         }
 
         .form-field {
-            max-width: 200px;
-            word-wrap: break-word;
+            white-space: nowrap;
+        }
+
+        .answer-column {
+            padding-right: 30px !important;
         }
 
         .form-field-empty {
@@ -722,7 +717,7 @@
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Date</th>
+                            <th>Date ${getGMTOffset()}</th>
                             <th>IP Address</th>
                             <th>Device</th>
                             <th>Location</th>
@@ -740,9 +735,7 @@
 
             impressions.forEach(impression => {
                 const id = impression._id || impression.id;
-                const date = impression.createdAt ? 
-                    new Date(impression.createdAt).toLocaleString() : 
-                    'N/A';
+                const date = formatDate(impression.createdAt);
                 const deviceBadge = getDeviceBadge(impression.deviceType);
                 const location = formatLocation(impression.geo);
                 const referrer = impression.referrer ? 
@@ -787,15 +780,15 @@
                     <thead>
                         <tr>
                             <th>Impression ID</th>
-                            <th>Date</th>
+                            <th>Date ${getGMTOffset()}</th>
                             <th>Location</th>
                             <th>Form Name</th>
             `;
 
-            // Add step columns (up to 10)
-            for (let i = 1; i <= 10; i++) {
+            // Add step columns (up to 9)
+            for (let i = 1; i <= 9; i++) {
                 html += `<th>Step-${i}</th>`;
-                html += `<th>Q-${i}</th>`;
+                html += `<th>A-${i}</th>`;
             }
 
             html += `
@@ -806,9 +799,7 @@
 
             impressions.forEach(impression => {
                 const id = impression._id || impression.id;
-                const date = impression.createdAt ? 
-                    new Date(impression.createdAt).toLocaleString() : 
-                    'N/A';
+                const date = formatDate(impression.createdAt);
                 const form = impression.form || {};
                 const formName = form.formName || form.name || '—';
 
@@ -818,13 +809,13 @@
                 html += `<td class="geo-info">${formatLocation(impression.geo)}</td>`;
                 html += `<td class="form-field">${formName}</td>`;
 
-                // Add step data (up to 10)
-                for (let i = 1; i <= 10; i++) {
+                // Add step data (up to 9)
+                for (let i = 1; i <= 9; i++) {
                     const question = form[`step${i}Question`] || form[`step${i}_question`] || form[`step${i}question`] || '—';
                     const answer = form[`step${i}Answer`] || form[`step${i}_answer`] || form[`step${i}answer`] || '—';
                     
                     html += `<td class="form-field">${formatFormValue(question)}</td>`;
-                    html += `<td class="form-field">${formatFormValue(answer)}</td>`;
+                    html += `<td class="form-field answer-column">${formatFormValue(answer)}</td>`;
                 }
 
                 html += '</tr>';
@@ -865,6 +856,26 @@
             if (geo.region) parts.push(geo.region);
             if (geo.country) parts.push(geo.country);
             return parts.length > 0 ? parts.join(', ') : 'N/A';
+        }
+
+        function getGMTOffset() {
+            const date = new Date();
+            const offset = -date.getTimezoneOffset() / 60;
+            return offset >= 0 ? `+${offset}` : `${offset}`;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            
+            // Format: MM/DD/YY HH:MM (no seconds, 2-digit year)
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const year = String(date.getFullYear()).slice(-2);
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${month}/${day}/${year} ${hours}:${minutes}`;
         }
 
         function showError(message) {
