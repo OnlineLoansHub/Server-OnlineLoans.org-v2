@@ -424,9 +424,20 @@
                 <div class="form-group">
                     <label>Select Geo</label>
                     <select id="geoFilter">
-                        <option value="all">All the Rest</option>
+                        <option value="all">All Geos</option>
                         <option value="usa">USA</option>
                         <option value="usa-unknown">USA + Unknown</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Select Form Name</label>
+                    <select id="formNameFilter">
+                        <option value="all">All Forms</option>
+                        <option value="personal-loan">personal-loan</option>
+                        <option value="business-loan">business-loan</option>
+                        <option value="construction-funding-new-york">construction-funding-new-york</option>
+                        <option value="restaurant-funding-new-york">restaurant-funding-new-york</option>
+                        <option value="restaurant-funding-florida">restaurant-funding-florida</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -473,6 +484,7 @@
             const filterDate = document.getElementById('filterDate').value;
             const dateFilterType = document.getElementById('dateFilterType').value;
             const geoFilter = document.getElementById('geoFilter').value;
+            const formNameFilter = document.getElementById('formNameFilter').value;
             const contentDiv = document.getElementById('content');
 
             if (!apiUrl) {
@@ -544,12 +556,15 @@
                         const countryUpper = country.toUpperCase();
                         return countryUpper === 'US' || countryUpper === 'USA' || countryUpper === '' || !imp.geo;
                     });
-                } else if (geoFilter === 'all') {
-                    // "All the Rest" means everything except USA
+                }
+                // "All Geos" (geoFilter === 'all') shows all impressions - no filtering needed
+
+                // Filter by form name
+                if (formNameFilter && formNameFilter !== 'all') {
                     impressions = impressions.filter(imp => {
-                        const country = imp.geo?.country || imp.geo?.countryCode || '';
-                        const countryUpper = country.toUpperCase();
-                        return countryUpper !== 'US' && countryUpper !== 'USA' && countryUpper !== '';
+                        const form = imp.form || {};
+                        const formName = form.formName || form.name || '';
+                        return formName === formNameFilter;
                     });
                 }
 
