@@ -133,7 +133,30 @@
             color: #495057;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 10px;
+        }
+
+        .export-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            white-space: nowrap;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .export-btn:active {
+            transform: translateY(0);
         }
 
         .section-title::before {
@@ -687,7 +710,10 @@
             // Table 1: Impressions WITH form data (moved to top)
             html += `
                 <div class="section">
-                    <h2 class="section-title">Impressions with Form Data</h2>
+                    <h2 class="section-title">
+                        <span>Impressions with Form Data</span>
+                        <button class="export-btn" onclick="exportToCSV('formDataTable', 'impressions-with-form-data')">📥 Export to CSV</button>
+                    </h2>
                     <div class="table-wrapper">
                         ${createFormDataTable(withFormData)}
                     </div>
@@ -697,7 +723,10 @@
             // Table 2: All impressions (with or without form data)
             html += `
                 <div class="section">
-                    <h2 class="section-title">All Impressions with or without Form Data</h2>
+                    <h2 class="section-title">
+                        <span>All Impressions with or without Form Data</span>
+                        <button class="export-btn" onclick="exportToCSV('allImpressionsTable', 'all-impressions')">📥 Export to CSV</button>
+                    </h2>
                     <div class="table-wrapper">
                         ${createAllImpressionsTable(impressions)}
                     </div>
@@ -713,7 +742,7 @@
             }
 
             let html = `
-                <table>
+                <table id="allImpressionsTable">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -776,7 +805,7 @@
             }
 
             let html = `
-                <table>
+                <table id="formDataTable">
                     <thead>
                         <tr>
                             <th>Impression ID</th>
@@ -876,6 +905,52 @@
             const minutes = String(date.getMinutes()).padStart(2, '0');
             
             return `${month}/${day}/${year} ${hours}:${minutes}`;
+        }
+
+        function exportToCSV(tableId, filename) {
+            const table = document.getElementById(tableId);
+            if (!table) {
+                showError('Table not found');
+                return;
+            }
+
+            let csv = [];
+            const rows = table.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                const rowData = [];
+                const cells = row.querySelectorAll('th, td');
+                
+                cells.forEach(cell => {
+                    // Get text content, removing any HTML tags and special characters
+                    let text = cell.innerText || cell.textContent || '';
+                    // Replace newlines and commas
+                    text = text.replace(/\n/g, ' ').replace(/,/g, ';');
+                    // Wrap in quotes if contains special characters
+                    if (text.includes('"') || text.includes('\n') || text.includes(',')) {
+                        text = '"' + text.replace(/"/g, '""') + '"';
+                    }
+                    rowData.push(text);
+                });
+                
+                csv.push(rowData.join(','));
+            });
+
+            // Create CSV content
+            const csvContent = csv.join('\n');
+            
+            // Create blob and download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${filename}-${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function showError(message) {
