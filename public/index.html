@@ -422,6 +422,14 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label>Select Geo</label>
+                    <select id="geoFilter">
+                        <option value="all">All the Rest</option>
+                        <option value="usa">USA</option>
+                        <option value="usa-unknown">USA + Unknown</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>&nbsp;</label>
                     <button onclick="loadImpressions()">🔍 Submit</button>
                 </div>
@@ -464,6 +472,7 @@
             const apiUrl = document.getElementById('apiUrl').value;
             const filterDate = document.getElementById('filterDate').value;
             const dateFilterType = document.getElementById('dateFilterType').value;
+            const geoFilter = document.getElementById('geoFilter').value;
             const contentDiv = document.getElementById('content');
 
             if (!apiUrl) {
@@ -495,6 +504,11 @@
                     }
                 }
 
+                // Add geo filter to query parameters (only for USA)
+                if (geoFilter === 'usa') {
+                    params.append('country', 'US');
+                }
+
                 if (params.toString()) {
                     url += '?' + params.toString();
                 }
@@ -514,6 +528,28 @@
                     impressions = impressions.filter(imp => {
                         const impDate = new Date(imp.createdAt);
                         return impDate.toDateString() === filterDateObj.toDateString();
+                    });
+                }
+
+                // Filter by geo location
+                if (geoFilter === 'usa') {
+                    impressions = impressions.filter(imp => {
+                        const country = imp.geo?.country || imp.geo?.countryCode || '';
+                        return country.toUpperCase() === 'US' || country.toUpperCase() === 'USA';
+                    });
+                } else if (geoFilter === 'usa-unknown') {
+                    // "USA + Unknown" means USA or missing/unknown location
+                    impressions = impressions.filter(imp => {
+                        const country = imp.geo?.country || imp.geo?.countryCode || '';
+                        const countryUpper = country.toUpperCase();
+                        return countryUpper === 'US' || countryUpper === 'USA' || countryUpper === '' || !imp.geo;
+                    });
+                } else if (geoFilter === 'all') {
+                    // "All the Rest" means everything except USA
+                    impressions = impressions.filter(imp => {
+                        const country = imp.geo?.country || imp.geo?.countryCode || '';
+                        const countryUpper = country.toUpperCase();
+                        return countryUpper !== 'US' && countryUpper !== 'USA' && countryUpper !== '';
                     });
                 }
 
@@ -659,6 +695,7 @@
                         <tr>
                             <th>Impression ID</th>
                             <th>Date</th>
+                            <th>Location</th>
                             <th>Form Name</th>
             `;
 
@@ -685,6 +722,7 @@
                 html += '<tr>';
                 html += `<td class="id-cell" onclick="copyToClipboard('${id}')" title="Click to copy ID">${id}</td>`;
                 html += `<td>${date}</td>`;
+                html += `<td class="geo-info">${formatLocation(impression.geo)}</td>`;
                 html += `<td class="form-field">${formName}</td>`;
 
                 // Add step data (up to 10)
