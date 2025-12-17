@@ -106,6 +106,14 @@ export class ImpressionService {
     if (filters['geo.city']) filter['geo.city'] = { $regex: filters['geo.city'], $options: 'i' };
     if (filters['geo.timezone']) filter['geo.timezone'] = filters['geo.timezone'];
 
+    // Handle hasFormData boolean filter
+    if (typeof filters.hasFormData !== 'undefined') {
+      const value = String(filters.hasFormData).toLowerCase();
+      if (value === 'true' || value === 'false') {
+        filter.hasFormData = value === 'true';
+      }
+    }
+
     // Handle date range filters
     if (filters.createdAfter || filters.createdBefore) {
       filter.createdAt = {};
@@ -118,7 +126,7 @@ export class ImpressionService {
     }
 
     // Default limit and sorting
-    const limit = filters.limit ? parseInt(filters.limit, 10) : 100;
+    const limit = filters.limit ? parseInt(filters.limit, 10) : 500;
     const sort: any = filters.sort === 'asc' ? { createdAt: 1 } : { createdAt: -1 };
 
     return this.impressionModel

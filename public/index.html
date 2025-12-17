@@ -524,6 +524,14 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label>HasFormData</label>
+                    <select id="hasFormDataFilter">
+                        <option value="all">----</option>
+                        <option value="true">True</option>
+                        <option value="false">False</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>Select Geo</label>
                     <select id="geoFilter">
                         <option value="all">All Geos</option>
@@ -610,6 +618,9 @@
             // Reset date filter type to exact
             document.getElementById('dateFilterType').value = 'exact';
             
+            // Reset hasFormData filter to all
+            document.getElementById('hasFormDataFilter').value = 'all';
+            
             // Reset geo filter to all
             document.getElementById('geoFilter').value = 'all';
             
@@ -621,6 +632,7 @@
             const apiUrl = document.getElementById('apiUrl').value;
             const filterDate = document.getElementById('filterDate').value;
             const dateFilterType = document.getElementById('dateFilterType').value;
+            const hasFormDataFilter = document.getElementById('hasFormDataFilter').value;
             const geoFilter = document.getElementById('geoFilter').value;
             const formNameFilter = document.getElementById('formNameFilter').value;
             const contentDiv = document.getElementById('content');
@@ -657,6 +669,11 @@
                 // Add geo filter to query parameters (only for USA)
                 if (geoFilter === 'usa') {
                     params.append('country', 'US');
+                }
+
+                // Add hasFormData filter
+                if (hasFormDataFilter === 'true' || hasFormDataFilter === 'false') {
+                    params.append('hasFormData', hasFormDataFilter);
                 }
 
                 if (params.toString()) {
