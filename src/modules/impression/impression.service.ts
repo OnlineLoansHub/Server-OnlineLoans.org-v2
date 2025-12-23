@@ -23,61 +23,119 @@ export class ImpressionService {
   ) {}
 
   async createImpression(req: Request): Promise<ImpressionDocument> {
+    // ─────────────────────────────────────────────
+    // 🔥 HOT PATH — minimal work, fastest return
+    // ─────────────────────────────────────────────
+  
     const userIp = extractIp(req) || '';
     const userAgent = req.headers['user-agent'] || '';
-    const xReferrer = extractReferrer(req) || '';
-    const deviceType = detectDeviceType(userAgent);
-    const geo = geoLookup(userIp);
-    const subs = parseSubsFromReferrer(xReferrer);
-
-    // Ensure all fields are always present, even if empty
-    const impressionData = {
-      userIp: userIp || '',
-      userAgent: userAgent || '',
-      referrer: xReferrer || '',
-      deviceType,
-      sub1: subs.sub1 || '',
-      sub2: subs.sub2 || '',
-      sub3: subs.sub3 || '',
-      sub4: subs.sub4 || '',
-      sub5: subs.sub5 || '',
-      sub6: subs.sub6 || '',
-      sub7: subs.sub7 || '',
-      sub8: subs.sub8 || '',
-      sub9: subs.sub9 || '',
-      sub10: subs.sub10 || '',
-      geo: {
-        country: geo?.country || '',
-        region: geo?.region || '',
-        city: geo?.city || '',
-        timezone: geo?.timezone || '',
-        lat: geo?.lat || null,
-        lon: geo?.lon || null,
-      },
+    const referrer = extractReferrer(req) || '';
+  
+    const impression = await this.impressionModel.create({
+      userIp,
+      userAgent,
+      referrer,
       hasLpClick: false,
       lpClicks: {},
-    };
+      geo: {
+        country: '',
+        region: '',
+        city: '',
+        timezone: '',
+        lat: null,
+        lon: null,
+      },
+    });
+  
+    // ─────────────────────────────────────────────
+    // 🧊 COLD PATH — enrichment after response
+    // ─────────────────────────────────────────────
+    setImmediate(async () => {
+      try {
+        // Enrichment
+        const deviceType = detectDeviceType(userAgent);
+        const geo = geoLookup(userIp);
+        const subs = parseSubsFromReferrer(referrer);
+  
+        const city = (geo?.city || '').toLowerCase();
+  
+        // Update impression with enriched data
+        await this.impressionModel.updateOne(
+          { _id: impression._id },
+          {
+            $set: {
+              deviceType,
+              sub1: subs.sub1 || '',
+              sub2: subs.sub2 || '',
+              sub3: subs.sub3 || '',
+              sub4: subs.sub4 || '',
+              sub5: subs.sub5 || '',
+              sub6: subs.sub6 || '',
+              sub7: subs.sub7 || '',
+              sub8: subs.sub8 || '',
+              sub9: subs.sub9 || '',
+              sub10: subs.sub10 || '',
+              geo: {
+                country: geo?.country || '',
+                region: geo?.region || '',
+                city: geo?.city || '',
+                timezone: geo?.timezone || '',
+                lat: geo?.lat ?? null,
+                lon: geo?.lon ?? null,
+              },
+            },
+          }
+        );
+  
+        // Telegram notification (optional, non-blocking)
+        const botToken = this.configService.get<string>('TG_IMP_BOT_ID');
+        const groupId = this.configService.get<string>('TG_IMP_GROUP_ID');
+  
+        if (botToken && groupId && city !== 'shoresh') {
+          const impressionObj = impression.toObject() as any;
+          const telegramPayload = {
+            _id: impression._id.toString(),
+            userIp,
+            deviceType,
+            userAgent,
+            referrer,
+            sub1: subs.sub1 || '',
+            sub2: subs.sub2 || '',
+            sub3: subs.sub3 || '',
+            sub4: subs.sub4 || '',
+            sub5: subs.sub5 || '',
+            sub6: subs.sub6 || '',
+            sub7: subs.sub7 || '',
+            sub8: subs.sub8 || '',
+            sub9: subs.sub9 || '',
+            sub10: subs.sub10 || '',
+            geo: {
+              country: geo?.country || '',
+              region: geo?.region || '',
+              city: geo?.city || '',
+              timezone: geo?.timezone || '',
+              lat: geo?.lat ?? null,
+              lon: geo?.lon ?? null,
+            },
+            createdAt: impressionObj.createdAt || new Date(),
+          };
 
-    const impression = new this.impressionModel(impressionData);
-    const savedImpression = await impression.save();
-
-    // Send Telegram notification (skip if city is Shoresh)
-    const botToken = this.configService.get<string>('TG_IMP_BOT_ID');
-    const groupId = this.configService.get<string>('TG_IMP_GROUP_ID');
-    
-    if (botToken && groupId && impressionData?.geo?.city !== 'Shoresh') {
-      // Convert to plain object to include all fields
-      const impressionObject = savedImpression.toObject();
-      this.telegramService
-        .notifyNewImpression(botToken, groupId, impressionObject)
-        .catch((error) => {
-          // Log error but don't fail the impression creation
-          console.error('Failed to send Telegram notification:', error);
-        });
-    }
-
-    return savedImpression;
+          await this.telegramService.notifyNewImpression(
+            botToken,
+            groupId,
+            telegramPayload
+          );
+        }
+      } catch (error) {
+        // Never affect request lifecycle
+        console.error('Async impression enrichment failed:', error);
+      }
+    });
+  
+    // 🚀 RETURN ASAP
+    return impression;
   }
+  
 
   async findAll(): Promise<Impression[]> {
     return this.impressionModel.find().sort({ createdAt: -1 }).limit(100).exec();
