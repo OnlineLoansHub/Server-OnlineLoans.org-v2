@@ -292,6 +292,28 @@
             opacity: 0.6;
         }
 
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 20px !important;
+        }
+
+        .sortable-header:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sort-arrow {
+            position: absolute;
+            right: 5px;
+            font-size: 10px;
+            opacity: 0.5;
+        }
+
+        .sort-arrow.active {
+            opacity: 1;
+        }
+
         .geo-info {
             font-size: 12px;
             color: #6c757d;
@@ -740,10 +762,6 @@
         }
 
         function createTables(impressions) {
-            // Separate impressions with and without form data
-            const withFormData = impressions.filter(imp => imp.hasFormData === true);
-            const withoutFormData = impressions.filter(imp => !imp.hasFormData || imp.hasFormData === false);
-
             let html = '';
 
             // Stats section at the top
@@ -754,36 +772,28 @@
                             <div class="number">${impressions.length}</div>
                             <div class="label">Total Impressions</div>
                         </div>
-                        <div class="stat-card">
-                            <div class="number">${withFormData.length}</div>
-                            <div class="label">With Form Data</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="number">${withoutFormData.length}</div>
-                            <div class="label">Without Form Data</div>
-                        </div>
                     </div>
                 </div>
             `;
 
-            // Table 1: Impressions WITH form data (moved to top)
+            // Home page LP Clicks Table
             html += `
                 <div class="section">
                     <h2 class="section-title">
-                        <span>Impressions with Form Data</span>
-                        <button class="export-btn" onclick="exportToCSV('formDataTable', 'impressions-with-form-data')">📥 Export to CSV</button>
+                        <span>Home page Lp clicks</span>
+                        <button class="export-btn" onclick="exportToCSV('lpClicksTable', 'home-page-lp-clicks')">📥 Export to CSV</button>
                     </h2>
-                    <div class="table-wrapper">
-                        ${createFormDataTable(withFormData)}
+                    <div class="table-wrapper" style="max-width: 600px;">
+                        ${createLpClicksTable(impressions)}
                     </div>
                 </div>
             `;
 
-            // Table 2: All impressions (with or without form data)
+            // All impressions table
             html += `
                 <div class="section">
                     <h2 class="section-title">
-                        <span>All Impressions with or without Form Data</span>
+                        <span>All Impressions</span>
                         <button class="export-btn" onclick="exportToCSV('allImpressionsTable', 'all-impressions')">📥 Export to CSV</button>
                     </h2>
                     <div class="table-wrapper">
@@ -795,9 +805,162 @@
             return html;
         }
 
+        function createLpClicksTable(impressions) {
+            const categories = [
+                'Business Loans',
+                'Mortgage Loans',
+                'Student Loans',
+                'Personal Loans',
+                'Auto Loans',
+                'Pet Insurance',
+                'Credit Score',
+                'Crypto Loans',
+                'Gold and Silver'
+            ];
+
+            // Count lpClicks for each category
+            const categoryCounts = {};
+            categories.forEach(category => {
+                categoryCounts[category] = 0;
+            });
+
+            impressions.forEach(impression => {
+                const lpClicks = impression.lpClicks || {};
+                categories.forEach(category => {
+                    if (lpClicks[category] === true) {
+                        categoryCounts[category]++;
+                    }
+                });
+            });
+
+            const totalImpressions = impressions.length;
+
+            // Build category data array
+            const categoryData = categories.map(category => {
+                const count = categoryCounts[category];
+                const percentage = totalImpressions > 0 
+                    ? ((count / totalImpressions) * 100).toFixed(2) 
+                    : '0.00';
+                return { category, count, percentage: parseFloat(percentage) };
+            });
+
+            let html = `
+                <table id="lpClicksTable" style="font-size: 12px;">
+                    <thead>
+                        <tr>
+                            <th class="sortable-header" style="padding: 8px 10px;" onclick="sortLpClicksTable('category')">
+                                Category
+                                <span class="sort-arrow" id="sort-category">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 10px; text-align: center;" onclick="sortLpClicksTable('clicks')">
+                                LP Clicks
+                                <span class="sort-arrow" id="sort-clicks">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 10px; text-align: center;" onclick="sortLpClicksTable('percentage')">
+                                Percentage
+                                <span class="sort-arrow" id="sort-percentage">⇅</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="lpClicksTableBody">
+                        <tr>
+                            <td style="padding: 6px 10px;"><strong>Total Impressions</strong></td>
+                            <td style="padding: 6px 10px; text-align: center;"><strong>${totalImpressions}</strong></td>
+                            <td style="padding: 6px 10px; text-align: center;"><strong>100.00%</strong></td>
+                        </tr>
+            `;
+
+            categoryData.forEach(item => {
+                html += `
+                    <tr>
+                        <td style="padding: 6px 10px;">${item.category}</td>
+                        <td style="padding: 6px 10px; text-align: center;">${item.count}</td>
+                        <td style="padding: 6px 10px; text-align: center;">${item.percentage.toFixed(2)}%</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            // Store category data globally for sorting
+            window.lpClicksCategoryData = categoryData;
+            window.lpClicksTotalImpressions = totalImpressions;
+            window.lpClicksCurrentSort = { column: null, direction: 'asc' };
+
+            return html;
+        }
+
+        function sortLpClicksTable(column) {
+            const tbody = document.getElementById('lpClicksTableBody');
+            if (!tbody || !window.lpClicksCategoryData) return;
+
+            const data = window.lpClicksCategoryData;
+            const currentSort = window.lpClicksCurrentSort;
+
+            // Determine sort direction
+            let direction = 'asc';
+            if (currentSort.column === column && currentSort.direction === 'asc') {
+                direction = 'desc';
+            }
+
+            // Sort the data
+            const sortedData = [...data].sort((a, b) => {
+                let comparison = 0;
+                if (column === 'category') {
+                    comparison = a.category.localeCompare(b.category);
+                } else if (column === 'clicks') {
+                    comparison = a.count - b.count;
+                } else if (column === 'percentage') {
+                    comparison = a.percentage - b.percentage;
+                }
+
+                return direction === 'asc' ? comparison : -comparison;
+            });
+
+            // Update sort state
+            window.lpClicksCurrentSort = { column, direction };
+
+            // Update sort arrows
+            document.querySelectorAll('.sort-arrow').forEach(arrow => {
+                arrow.textContent = '⇅';
+                arrow.classList.remove('active');
+            });
+
+            const arrowId = `sort-${column}`;
+            const arrow = document.getElementById(arrowId);
+            if (arrow) {
+                arrow.textContent = direction === 'asc' ? '↑' : '↓';
+                arrow.classList.add('active');
+            }
+
+            // Rebuild table rows (excluding Total Impressions row)
+            let html = `
+                <tr>
+                    <td style="padding: 6px 10px;"><strong>Total Impressions</strong></td>
+                    <td style="padding: 6px 10px; text-align: center;"><strong>${window.lpClicksTotalImpressions}</strong></td>
+                    <td style="padding: 6px 10px; text-align: center;"><strong>100.00%</strong></td>
+                </tr>
+            `;
+
+            sortedData.forEach(item => {
+                html += `
+                    <tr>
+                        <td style="padding: 6px 10px;">${item.category}</td>
+                        <td style="padding: 6px 10px; text-align: center;">${item.count}</td>
+                        <td style="padding: 6px 10px; text-align: center;">${item.percentage.toFixed(2)}%</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
         function createAllImpressionsTable(impressions) {
             if (impressions.length === 0) {
-                return '<div class="empty-state"><p>No impressions without form data</p></div>';
+                return '<div class="empty-state"><p>No impressions found</p></div>';
             }
 
             let html = `
@@ -868,90 +1031,6 @@
             return html;
         }
 
-        function createFormDataTable(impressions) {
-            if (impressions.length === 0) {
-                return '<div class="empty-state"><p>No impressions with form data</p></div>';
-            }
-
-            let html = `
-                <table id="formDataTable">
-                    <thead>
-                        <tr>
-                            <th>Impression ID</th>
-                            <th>Date ${getGMTOffset()}</th>
-                            <th>IP Address</th>
-                            <th>Device</th>
-                            <th>UA Bot</th>
-                            <th>OP</th>
-                            <th>Browser</th>
-                            <th>Location</th>
-                            <th>Form Name</th>
-            `;
-
-            // Add step columns (up to 9)
-            for (let i = 1; i <= 9; i++) {
-                html += `<th>Step-${i}</th>`;
-                html += `<th>A-${i}</th>`;
-            }
-
-            html += `
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            impressions.forEach(impression => {
-                const id = impression._id || impression.id;
-                const date = formatDate(impression.createdAt);
-                const deviceBadge = getDeviceBadge(impression.deviceType);
-                const userAgent = impression.userAgent || '';
-                const isBot = userAgent.toLowerCase().includes('bot') ? '✓' : '✗';
-                const os = extractOS(userAgent);
-                const browser = extractBrowser(userAgent);
-                const form = impression.form || {};
-                const formName = form.formName || form.name || '—';
-
-                html += '<tr>';
-                html += `<td class="id-cell" onclick="copyToClipboard('${id}')" title="Click to copy ID">${id}</td>`;
-                html += `<td>${date}</td>`;
-                html += `<td>${impression.userIp || 'N/A'}</td>`;
-                html += `<td>${deviceBadge}</td>`;
-                html += `<td>${isBot}</td>`;
-                html += `<td>${os}</td>`;
-                html += `<td>${browser}</td>`;
-                html += `<td class="geo-info">${formatLocation(impression.geo)}</td>`;
-                html += `<td class="form-field">${formName}</td>`;
-
-                // Add step data (up to 9)
-                for (let i = 1; i <= 9; i++) {
-                    const question = form[`step${i}Question`] || form[`step${i}_question`] || form[`step${i}question`] || '—';
-                    const answer = form[`step${i}Answer`] || form[`step${i}_answer`] || form[`step${i}answer`] || '—';
-                    
-                    html += `<td class="form-field">${formatFormValue(question)}</td>`;
-                    html += `<td class="form-field answer-column">${formatFormValue(answer)}</td>`;
-                }
-
-                html += '</tr>';
-            });
-
-            html += `
-                    </tbody>
-                </table>
-            `;
-
-            return html;
-        }
-
-        function formatFormValue(value) {
-            if (!value || value === '—') {
-                return '<span class="form-field-empty">—</span>';
-            }
-            if (typeof value === 'object') {
-                return JSON.stringify(value);
-            }
-            const str = String(value);
-            return str.length > 50 ? str.substring(0, 50) + '...' : str;
-        }
 
         function getDeviceBadge(deviceType) {
             const badges = {
