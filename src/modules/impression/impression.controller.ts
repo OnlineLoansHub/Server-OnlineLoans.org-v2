@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Patch, Delete, Param, HttpCode, HttpStatus, Req, Body, Query, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, HttpCode, HttpStatus, Req, Query, NotFoundException } from '@nestjs/common';
 import { Request } from 'express';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ImpressionService } from './impression.service';
 
 @ApiTags('impression')
@@ -29,8 +29,8 @@ export class ImpressionController {
       sub9: impression.sub9,
       sub10: impression.sub10,
       geo: impression.geo,
-      form: impression.form,
-      hasFormData: impression.hasFormData,
+      hasLpClick: impression.hasLpClick,
+      lpClicks: impression.lpClicks,
       message: 'Impression data saved successfully',
     };
   }
@@ -48,60 +48,6 @@ export class ImpressionController {
       throw new NotFoundException(`Impression record with ID ${id} not found`);
     }
     return { impression };
-  }
-
-  @Patch(':id/form')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update form data for an impression' })
-  @ApiBody({
-    description: 'Form data object - can contain any key-value pairs',
-    schema: {
-      type: 'object',
-      additionalProperties: true,
-      example: {
-        date: '2025-11-30',
-        formName: 'business-loan',
-        step1Question: 'How much money do you need?',
-        step1Answer: '10000',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Form data updated successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        id: { type: 'string', example: '507f1f77bcf86cd799439011' },
-        form: {
-          type: 'object',
-          additionalProperties: true,
-          example: {
-            firstName: 'John',
-            lastName: 'Doe',
-            email: 'john@example.com',
-          },
-        },
-        hasFormData: { type: 'boolean', example: true },
-        message: { type: 'string', example: 'Form data updated successfully' },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Impression not found',
-  })
-  async updateForm(@Param('id') id: string, @Body() formData: Record<string, any>) {
-    const impression = await this.impressionService.updateForm(id, formData);
-    if (!impression) {
-      throw new NotFoundException(`Impression record with ID ${id} not found`);
-    }
-    return {
-      id: impression._id.toString(),
-      form: impression.form,
-      hasFormData: impression.hasFormData,
-      message: 'Form data updated successfully',
-    };
   }
 
   @Delete('cleanup')

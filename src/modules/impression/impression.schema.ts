@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 export type ImpressionDocument = Impression & Document;
 
-@Schema({ timestamps: true, collection: 'Impressions', minimize: false })
+@Schema({ timestamps: true, collection: 'impression-v2', minimize: false })
 export class Impression {
   @Prop({ type: String, default: '' })
   userIp: string;
@@ -68,11 +68,11 @@ export class Impression {
     lon: number | null;
   };
 
-  @Prop({ type: Object, default: () => ({}), required: true })
-  form: Record<string, any>;
-
   @Prop({ type: Boolean, default: false })
-  hasFormData: boolean;
+  hasLpClick: boolean;
+
+  @Prop({ type: Object, default: () => ({}), required: true })
+  lpClicks: Record<string, any>;
 }
 
 export const ImpressionSchema = SchemaFactory.createForClass(Impression);
