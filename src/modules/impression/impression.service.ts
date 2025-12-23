@@ -140,6 +140,36 @@ export class ImpressionService {
     return this.impressionModel.findById(id).exec();
   }
 
+  async updateLpClicks(id: string, lpClicksData: Record<string, any>): Promise<ImpressionDocument | null> {
+    const impression = await this.impressionModel.findById(id).exec();
+    if (!impression) {
+      return null;
+    }
+
+    // Merge the new lpClicks data with existing lpClicks data
+    const updatedLpClicks = {
+      ...(impression.lpClicks || {}),
+      ...lpClicksData,
+    };
+
+    // Check if lpClicks has any data (has at least one key with a non-empty value)
+    const hasLpClick = Object.keys(updatedLpClicks).length > 0 && 
+      Object.values(updatedLpClicks).some(value => {
+        if (value === null || value === undefined) return false;
+        if (typeof value === 'string' && value.trim() === '') return false;
+        if (typeof value === 'object' && Object.keys(value).length === 0) return false;
+        return true;
+      });
+
+    // Update both lpClicks and hasLpClick fields
+    const updated = await this.impressionModel.findByIdAndUpdate(
+      id,
+      { $set: { lpClicks: updatedLpClicks, hasLpClick } },
+      { new: true, runValidators: true },
+    ).exec();
+
+    return updated;
+  }
 
   async deleteFilteredImpressions(): Promise<{ deletedCount: number; totalRemaining: number }> {
     // Build query for documents to delete

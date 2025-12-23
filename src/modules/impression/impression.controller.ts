@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Delete, Param, HttpCode, HttpStatus, Req, Query, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, HttpCode, HttpStatus, Req, Body, Query, NotFoundException } from '@nestjs/common';
 import { Request } from 'express';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { ImpressionService } from './impression.service';
 
 @ApiTags('impression')
@@ -48,6 +48,59 @@ export class ImpressionController {
       throw new NotFoundException(`Impression record with ID ${id} not found`);
     }
     return { impression };
+  }
+
+  @Patch(':id/lp-clicks')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update LP clicks data for an impression' })
+  @ApiBody({
+    description: 'LP clicks data object - can contain any key-value pairs',
+    schema: {
+      type: 'object',
+      additionalProperties: true,
+      example: {
+        clickType: 'button',
+        elementId: 'apply-now',
+        timestamp: '2025-12-17T10:30:00Z',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'LP clicks data updated successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', example: '507f1f77bcf86cd799439011' },
+        lpClicks: {
+          type: 'object',
+          additionalProperties: true,
+          example: {
+            clickType: 'button',
+            elementId: 'apply-now',
+            timestamp: '2025-12-17T10:30:00Z',
+          },
+        },
+        hasLpClick: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'LP clicks data updated successfully' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Impression not found',
+  })
+  async updateLpClicks(@Param('id') id: string, @Body() lpClicksData: Record<string, any>) {
+    const impression = await this.impressionService.updateLpClicks(id, lpClicksData);
+    if (!impression) {
+      throw new NotFoundException(`Impression record with ID ${id} not found`);
+    }
+    return {
+      id: impression._id.toString(),
+      lpClicks: impression.lpClicks,
+      hasLpClick: impression.hasLpClick,
+      message: 'LP clicks data updated successfully',
+    };
   }
 
   @Delete('cleanup')
