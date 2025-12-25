@@ -127,6 +127,34 @@
             border-bottom: none;
         }
 
+        .brand-clicks-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            padding: 30px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .brand-clicks-grid:last-child {
+            border-bottom: none;
+        }
+
+        .brand-click-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-click-section .section-title {
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        @media (max-width: 1200px) {
+            .brand-clicks-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .section-title {
             font-size: 1.8em;
             margin-bottom: 20px;
@@ -173,11 +201,13 @@
         .table-wrapper {
             overflow-x: auto;
             overflow-y: visible;
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
             max-width: 100%;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            background: white;
         }
 
         .table-wrapper::-webkit-scrollbar {
@@ -201,7 +231,8 @@
         table {
             width: auto;
             min-width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             background: white;
             table-layout: auto;
         }
@@ -209,36 +240,65 @@
         thead {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         th {
-            padding: 5px 7px;
+            padding: 14px 16px;
             text-align: left;
             font-weight: 700;
             font-size: 13px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
             white-space: nowrap;
+            border: none;
         }
 
+        th:first-child {
+            border-top-left-radius: 10px;
+        }
+
+        th:last-child {
+            border-top-right-radius: 10px;
+        }
 
         tbody tr {
-            border-bottom: 1px solid #e9ecef;
-            transition: background-color 0.2s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
         }
 
         tbody tr:hover {
-            background-color: #f8f9fa;
+            background-color: #f8f9ff;
+        }
+
+        tbody tr:first-child {
+            border-top: 2px solid #e9ecef;
         }
 
         td {
-            padding: 5px 7px;
-            font-size: 13px;
+            padding: 12px 16px;
+            font-size: 14px;
             font-weight: 500;
-            color: #495057;
+            color: #2d3748;
             vertical-align: middle;
             text-align: left;
             white-space: nowrap;
+        }
+
+        tbody tr[style*="background-color: #f8f9fa"] {
+            background-color: #f0f4ff !important;
+            font-weight: 600;
+            border-top: 2px solid #667eea;
+            border-bottom: 2px solid #667eea;
+        }
+
+        tbody tr[style*="background-color: #f8f9fa"] td {
+            color: #1a202c;
         }
 
         .badge {
@@ -789,6 +849,39 @@
                 </div>
             `;
 
+            // Brand Clicks Tables by Category
+            const categories = [
+                { key: 'businessLoans', label: 'Business Loans' },
+                { key: 'personalLoans', label: 'Personal Loans' },
+                { key: 'autoLoans', label: 'Auto Loans' },
+                { key: 'studentLoans', label: 'Student Loans' },
+                { key: 'mortgageLoans', label: 'Mortgage Loans' },
+                { key: 'cryptoLoans', label: 'Crypto Loans' },
+                { key: 'goldAndSilver', label: 'Gold and Silver' },
+                { key: 'petInsurance', label: 'Pet Insurance' },
+                { key: 'creditScore', label: 'Credit Score' },
+                { key: 'unknown', label: 'Unknown' }
+            ];
+
+            // Group categories into pairs for 2-column layout
+            html += `<div class="brand-clicks-grid">`;
+            
+            categories.forEach((category, index) => {
+                html += `
+                    <div class="brand-click-section">
+                        <h2 class="section-title" style="font-size: 1.4em; margin-bottom: 15px;">
+                            <span>${category.label}</span>
+                            <button class="export-btn" onclick="exportToCSV('${category.key}BrandClicksTable', '${category.key}-brand-clicks')">📥 Export</button>
+                        </h2>
+                        <div class="table-wrapper">
+                            ${createCategoryBrandClicksTable(impressions, category.key, category.label)}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+
             // All impressions table
             html += `
                 <div class="section">
@@ -954,6 +1047,224 @@
                     </tr>
                 `;
             });
+
+            tbody.innerHTML = html;
+        }
+
+        function createCategoryBrandClicksTable(impressions, pageKey, pageLabel) {
+            // Count total users who visited this page (have this pageKey field)
+            let totalUsers = 0;
+            
+            // Count brand clicks for this specific page category
+            const brandCounts = {};
+
+            impressions.forEach(impression => {
+                const pageData = impression[pageKey];
+                
+                // Count users who visited this page (have the pageKey field)
+                if (pageData !== undefined && pageData !== null) {
+                    totalUsers++;
+                    
+                    // Count brand clicks if pageData is an object with brand clicks
+                    if (typeof pageData === 'object') {
+                        // Iterate through brands in this page
+                        Object.keys(pageData).forEach(brandName => {
+                            // Only count if the value is true (actual click)
+                            if (pageData[brandName] === true) {
+                                if (!brandCounts[brandName]) {
+                                    brandCounts[brandName] = 0;
+                                }
+                                brandCounts[brandName]++;
+                            }
+                        });
+                    }
+                }
+            });
+
+            // Convert to array and sort by count (descending)
+            const brandData = Object.keys(brandCounts).map(brandName => ({
+                brand: brandName,
+                count: brandCounts[brandName]
+            })).sort((a, b) => b.count - a.count);
+
+            const totalBrandClicks = brandData.reduce((sum, item) => sum + item.count, 0);
+
+            // Create unique IDs for this category
+            const tableId = `${pageKey}BrandClicksTable`;
+            const tbodyId = `${pageKey}BrandClicksTableBody`;
+            const sortPrefix = pageKey.replace(/([A-Z])/g, '-$1').toLowerCase();
+
+            let html = `
+                <table id="${tableId}" style="font-size: 12px;">
+                    <thead>
+                        <tr>
+                            <th class="sortable-header" style="padding: 8px 10px;" onclick="sortCategoryBrandClicksTable('${pageKey}', 'brand')">
+                                Brand Name
+                                <span class="sort-arrow" id="sort-${sortPrefix}-brand-name">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 10px; text-align: center;" onclick="sortCategoryBrandClicksTable('${pageKey}', 'clicks')">
+                                Total Clicks
+                                <span class="sort-arrow" id="sort-${sortPrefix}-brand-clicks">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 10px; text-align: center;" onclick="sortCategoryBrandClicksTable('${pageKey}', 'percentage')">
+                                Percentage
+                                <span class="sort-arrow" id="sort-${sortPrefix}-brand-percentage">⇅</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="${tbodyId}">
+                        <tr style="background-color: #f0f4ff; border-top: 2px solid #667eea;">
+                            <td style="padding: 14px 16px; font-weight: 700; color: #1a202c; font-size: 15px;">Total Users</td>
+                            <td style="padding: 14px 16px; text-align: center; font-weight: 700; color: #667eea; font-size: 15px;">${totalUsers}</td>
+                            <td style="padding: 14px 16px; text-align: center; font-weight: 700; color: #667eea;">—</td>
+                        </tr>
+                        <tr style="background-color: #f8f9ff;">
+                            <td style="padding: 12px 16px; font-weight: 600; color: #2d3748;">Total Brand Clicks</td>
+                            <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: #667eea;">${totalBrandClicks}</td>
+                            <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: #667eea;">${totalUsers > 0 ? ((totalBrandClicks / totalUsers) * 100).toFixed(2) : '0.00'}%</td>
+                        </tr>
+            `;
+
+            if (brandData.length === 0) {
+                html += `
+                    <tr>
+                        <td colspan="3" style="padding: 30px; text-align: center; color: #718096; font-style: italic;">
+                            No brand clicks recorded for ${pageLabel}
+                        </td>
+                    </tr>
+                `;
+            } else {
+                brandData.forEach((item, index) => {
+                    // Percentage based on total users (how many users clicked this brand)
+                    const percentage = totalUsers > 0 
+                        ? ((item.count / totalUsers) * 100).toFixed(2) 
+                        : '0.00';
+                    const isEven = index % 2 === 0;
+                    html += `
+                        <tr style="${isEven ? 'background-color: #fafbff;' : ''}">
+                            <td style="padding: 12px 16px; color: #2d3748;">${item.brand}</td>
+                            <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: #4a5568;">${item.count}</td>
+                            <td style="padding: 12px 16px; text-align: center; color: #718096;">${percentage}%</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            // Store brand data globally for sorting (using pageKey as key)
+            if (!window.categoryBrandClicksData) {
+                window.categoryBrandClicksData = {};
+            }
+            if (!window.categoryBrandClicksSort) {
+                window.categoryBrandClicksSort = {};
+            }
+
+            window.categoryBrandClicksData[pageKey] = brandData;
+            window.categoryBrandClicksTotal = window.categoryBrandClicksTotal || {};
+            window.categoryBrandClicksTotal[pageKey] = totalBrandClicks;
+            window.categoryBrandClicksUsers = window.categoryBrandClicksUsers || {};
+            window.categoryBrandClicksUsers[pageKey] = totalUsers;
+            window.categoryBrandClicksSort[pageKey] = { column: null, direction: 'asc' };
+
+            return html;
+        }
+
+        function sortCategoryBrandClicksTable(pageKey, column) {
+            const tbodyId = `${pageKey}BrandClicksTableBody`;
+            const tbody = document.getElementById(tbodyId);
+            if (!tbody || !window.categoryBrandClicksData || !window.categoryBrandClicksData[pageKey]) return;
+
+            const data = window.categoryBrandClicksData[pageKey];
+            const currentSort = window.categoryBrandClicksSort[pageKey] || { column: null, direction: 'asc' };
+
+            // Determine sort direction
+            let direction = 'asc';
+            if (currentSort.column === column && currentSort.direction === 'asc') {
+                direction = 'desc';
+            }
+
+            // Sort the data
+            const sortedData = [...data].sort((a, b) => {
+                let comparison = 0;
+                if (column === 'brand') {
+                    comparison = a.brand.localeCompare(b.brand);
+                } else if (column === 'clicks') {
+                    comparison = a.count - b.count;
+                } else if (column === 'percentage') {
+                    const total = window.categoryBrandClicksTotal[pageKey] || 0;
+                    const aPct = total > 0 ? (a.count / total) * 100 : 0;
+                    const bPct = total > 0 ? (b.count / total) * 100 : 0;
+                    comparison = aPct - bPct;
+                }
+
+                return direction === 'asc' ? comparison : -comparison;
+            });
+
+            // Update sort state
+            window.categoryBrandClicksSort[pageKey] = { column, direction };
+
+            // Update sort arrows for this specific table
+            const sortPrefix = pageKey.replace(/([A-Z])/g, '-$1').toLowerCase();
+            const tableId = `${pageKey}BrandClicksTable`;
+            document.querySelectorAll(`#${tableId} .sort-arrow`).forEach(arrow => {
+                arrow.textContent = '⇅';
+                arrow.classList.remove('active');
+            });
+
+            const arrowId = column === 'brand' ? `sort-${sortPrefix}-brand-name` : 
+                          column === 'clicks' ? `sort-${sortPrefix}-brand-clicks` : 
+                          `sort-${sortPrefix}-brand-percentage`;
+            const arrow = document.getElementById(arrowId);
+            if (arrow) {
+                arrow.textContent = direction === 'asc' ? '↑' : '↓';
+                arrow.classList.add('active');
+            }
+
+            // Rebuild table rows (including Total Users and Total Brand Clicks rows)
+            const totalClicks = window.categoryBrandClicksTotal[pageKey] || 0;
+            const totalUsers = window.categoryBrandClicksUsers[pageKey] || 0;
+            
+            let html = `
+                <tr style="background-color: #f0f4ff; border-top: 2px solid #667eea;">
+                    <td style="padding: 14px 16px; font-weight: 700; color: #1a202c; font-size: 15px;">Total Users</td>
+                    <td style="padding: 14px 16px; text-align: center; font-weight: 700; color: #667eea; font-size: 15px;">${totalUsers}</td>
+                    <td style="padding: 14px 16px; text-align: center; font-weight: 700; color: #667eea;">—</td>
+                </tr>
+                <tr style="background-color: #f8f9ff;">
+                    <td style="padding: 12px 16px; font-weight: 600; color: #2d3748;">Total Brand Clicks</td>
+                    <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: #667eea;">${totalClicks}</td>
+                    <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: #667eea;">${totalUsers > 0 ? ((totalClicks / totalUsers) * 100).toFixed(2) : '0.00'}%</td>
+                </tr>
+            `;
+
+            if (sortedData.length === 0) {
+                html += `
+                    <tr>
+                        <td colspan="3" style="padding: 30px; text-align: center; color: #718096; font-style: italic;">
+                            No brand clicks recorded
+                        </td>
+                    </tr>
+                `;
+            } else {
+                sortedData.forEach((item, index) => {
+                    // Percentage based on total users (how many users clicked this brand)
+                    const percentage = totalUsers > 0 
+                        ? ((item.count / totalUsers) * 100).toFixed(2) 
+                        : '0.00';
+                    const isEven = index % 2 === 0;
+                    html += `
+                        <tr style="${isEven ? 'background-color: #fafbff;' : ''}">
+                            <td style="padding: 12px 16px; color: #2d3748;">${item.brand}</td>
+                            <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: #4a5568;">${item.count}</td>
+                            <td style="padding: 12px 16px; text-align: center; color: #718096;">${percentage}%</td>
+                        </tr>
+                    `;
+                });
+            }
 
             tbody.innerHTML = html;
         }
