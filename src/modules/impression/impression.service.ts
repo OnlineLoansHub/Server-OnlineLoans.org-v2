@@ -255,10 +255,11 @@ export class ImpressionService {
     };
 
     // Update using dot notation for dynamic field name
+    // Use runValidators: false to allow dynamic fields not in schema
     const updated = await this.impressionModel.findByIdAndUpdate(
       id,
       { $set: { [pageName]: updatedPageData } },
-      { new: true, runValidators: true },
+      { new: true, runValidators: false, strict: false },
     ).exec();
 
     return updated;

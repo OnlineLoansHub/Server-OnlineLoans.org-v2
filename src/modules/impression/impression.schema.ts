@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 export type ImpressionDocument = Impression & Document;
 
-@Schema({ timestamps: true, collection: 'impression-v2', minimize: false })
+@Schema({ timestamps: true, collection: 'impression-v2', minimize: false, strict: false })
 export class Impression {
   @Prop({ type: String, default: '' })
   userIp: string;
