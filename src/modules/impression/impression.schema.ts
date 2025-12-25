@@ -73,12 +73,6 @@ export class Impression {
 
   @Prop({ type: Boolean, default: false })
   hasHomepageClicks: boolean;
-
-  @Prop({ type: Object, default: () => ({}), required: true })
-  brandClicks: Record<string, any>;
-
-  @Prop({ type: Boolean, default: false })
-  hasBrandClicks: boolean;
 }
 
 export const ImpressionSchema = SchemaFactory.createForClass(Impression);

@@ -37,8 +37,6 @@ export class ImpressionService {
       referrer,
       hasHomepageClicks: false,
       homepageClicks: {},
-      hasBrandClicks: false,
-      brandClicks: {},
       geo: {
         country: '',
         region: '',
@@ -174,14 +172,6 @@ export class ImpressionService {
       }
     }
 
-    // Handle hasBrandClicks boolean filter
-    if (typeof filters.hasBrandClicks !== 'undefined') {
-      const value = String(filters.hasBrandClicks).toLowerCase();
-      if (value === 'true' || value === 'false') {
-        filter.hasBrandClicks = value === 'true';
-      }
-    }
-
     // Handle date range filters
     if (filters.createdAfter || filters.createdBefore) {
       filter.createdAt = {};
@@ -239,31 +229,35 @@ export class ImpressionService {
     return updated;
   }
 
-  async updateBrandClicks(id: string, clicksData: Record<string, any>): Promise<ImpressionDocument | null> {
+  async updatePageBrandClick(
+    id: string,
+    pageName: string,
+    brandName: string,
+  ): Promise<ImpressionDocument | null> {
     const impression = await this.impressionModel.findById(id).exec();
     if (!impression) {
       return null;
     }
 
-    // Merge the new brandClicks data with existing brandClicks data
-    const updatedClicks = {
-      ...(impression.brandClicks || {}),
-      ...clicksData,
+    // Get existing document as plain object
+    const impressionObj = impression.toObject() as any;
+    const existingPageData = impressionObj[pageName] || {};
+
+    // Check if brand already exists (prevent duplicate)
+    if (existingPageData[brandName] === true) {
+      return impression; // Already exists, return unchanged
+    }
+
+    // Add brand to page object
+    const updatedPageData = {
+      ...existingPageData,
+      [brandName]: true,
     };
 
-    // Check if brandClicks has any data (has at least one key with a non-empty value)
-    const hasBrandClicks = Object.keys(updatedClicks).length > 0 && 
-      Object.values(updatedClicks).some(value => {
-        if (value === null || value === undefined) return false;
-        if (typeof value === 'string' && value.trim() === '') return false;
-        if (typeof value === 'object' && Object.keys(value).length === 0) return false;
-        return true;
-      });
-
-    // Update both brandClicks and hasBrandClicks fields
+    // Update using dot notation for dynamic field name
     const updated = await this.impressionModel.findByIdAndUpdate(
       id,
-      { $set: { brandClicks: updatedClicks, hasBrandClicks } },
+      { $set: { [pageName]: updatedPageData } },
       { new: true, runValidators: true },
     ).exec();
 
