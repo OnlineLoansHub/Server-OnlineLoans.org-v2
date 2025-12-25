@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, HttpCode, HttpStatus, Req, Body, Query, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, HttpCode, HttpStatus, Req, Body, Query, NotFoundException } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { ImpressionService } from './impression.service';
@@ -50,15 +50,20 @@ export class ImpressionController {
     return { impression };
   }
 
-  @Patch(':id/lp-clicks')
+  @Post('lp-clicks')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update LP clicks data for an impression' })
   @ApiBody({
-    description: 'LP clicks data object - can contain any key-value pairs',
+    description: 'LP clicks data with impression ID in body',
     schema: {
       type: 'object',
+      required: ['impressionId'],
+      properties: {
+        impressionId: { type: 'string', example: '507f1f77bcf86cd799439011' },
+      },
       additionalProperties: true,
       example: {
+        impressionId: '507f1f77bcf86cd799439011',
         clickType: 'button',
         elementId: 'apply-now',
         timestamp: '2025-12-17T10:30:00Z',
@@ -90,10 +95,11 @@ export class ImpressionController {
     status: 404,
     description: 'Impression not found',
   })
-  async updateLpClicks(@Param('id') id: string, @Body() lpClicksData: Record<string, any>) {
-    const impression = await this.impressionService.updateLpClicks(id, lpClicksData);
+  async updateLpClicks(@Body() body: { impressionId: string; [key: string]: any }) {
+    const { impressionId, ...lpClicksData } = body;
+    const impression = await this.impressionService.updateLpClicks(impressionId, lpClicksData);
     if (!impression) {
-      throw new NotFoundException(`Impression record with ID ${id} not found`);
+      throw new NotFoundException(`Impression record with ID ${impressionId} not found`);
     }
     return {
       id: impression._id.toString(),
