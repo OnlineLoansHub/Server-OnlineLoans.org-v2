@@ -119,7 +119,7 @@
         }
 
         .section {
-            padding: 30px;
+            padding: 15px;
             border-bottom: 2px solid #e9ecef;
         }
 
@@ -139,20 +139,13 @@
             border-bottom: none;
         }
 
-        .brand-click-section {
-            display: flex;
-            flex-direction: column;
+        #categorySelect {
+            font-family: inherit;
         }
 
-        .brand-click-section .section-title {
-            margin-bottom: 15px;
-            font-size: 1.4em;
-        }
-
-        @media (max-width: 1200px) {
-            .brand-clicks-grid {
-                grid-template-columns: 1fr;
-            }
+        #categorySelect:focus {
+            outline: 2px solid #000;
+            outline-offset: 2px;
         }
 
         .section-title {
@@ -199,14 +192,12 @@
         }
 
         .table-wrapper {
-            overflow-x: auto;
+            overflow-x: visible;
             overflow-y: visible;
-            border-radius: 12px;
-            border: 2px solid #e9ecef;
-            max-width: 100%;
+            border: 1px solid #000;
+            width: fit-content;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             background: white;
         }
 
@@ -230,75 +221,42 @@
 
         table {
             width: auto;
-            min-width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+            border-collapse: collapse;
             background: white;
             table-layout: auto;
         }
 
         thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            background: white;
+            color: black;
         }
 
         th {
-            padding: 14px 16px;
+            padding: 8px 12px;
             text-align: left;
             font-weight: 700;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
+            font-size: 14px;
             white-space: nowrap;
-            border: none;
-        }
-
-        th:first-child {
-            border-top-left-radius: 10px;
-        }
-
-        th:last-child {
-            border-top-right-radius: 10px;
+            border-bottom: 1px solid #000;
+            color: black;
         }
 
         tbody tr {
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid #000;
         }
 
         tbody tr:last-child {
             border-bottom: none;
         }
 
-        tbody tr:hover {
-            background-color: #f8f9ff;
-        }
-
-        tbody tr:first-child {
-            border-top: 2px solid #e9ecef;
-        }
-
         td {
-            padding: 12px 16px;
+            padding: 6px 12px;
             font-size: 14px;
-            font-weight: 500;
-            color: #2d3748;
+            font-weight: 400;
+            color: black;
             vertical-align: middle;
             text-align: left;
             white-space: nowrap;
-        }
-
-        tbody tr[style*="background-color: #f8f9fa"] {
-            background-color: #f0f4ff !important;
-            font-weight: 600;
-            border-top: 2px solid #667eea;
-            border-bottom: 2px solid #667eea;
-        }
-
-        tbody tr[style*="background-color: #f8f9fa"] td {
-            color: #1a202c;
         }
 
         .badge {
@@ -606,14 +564,6 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>HasFormData</label>
-                    <select id="hasFormDataFilter">
-                        <option value="all">----</option>
-                        <option value="true">True</option>
-                        <option value="false">False</option>
-                    </select>
-                </div>
-                <div class="form-group">
                     <label>Select Geo</label>
                     <select id="geoFilter">
                         <option value="all">All Geos</option>
@@ -622,14 +572,21 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Select Form Name</label>
-                    <select id="formNameFilter">
-                        <option value="all">All Forms</option>
-                        <option value="personal-loan">personal-loan</option>
-                        <option value="business-loan">business-loan</option>
-                        <option value="construction-funding-new-york">construction-funding-new-york</option>
-                        <option value="restaurant-funding-new-york">restaurant-funding-new-york</option>
-                        <option value="restaurant-funding-florida">restaurant-funding-florida</option>
+                    <label>Select Table</label>
+                    <select id="mainTableSelect">
+                        <option value="">-- Select a table --</option>
+                        <option value="homepage-clicks">Home page LP Clicks</option>
+                        <option value="businessLoans">Business Loans</option>
+                        <option value="personalLoans">Personal Loans</option>
+                        <option value="autoLoans">Auto Loans</option>
+                        <option value="studentLoans">Student Loans</option>
+                        <option value="mortgageLoans">Mortgage Loans</option>
+                        <option value="cryptoLoans">Crypto Loans</option>
+                        <option value="goldAndSilver">Gold and Silver</option>
+                        <option value="petInsurance">Pet Insurance</option>
+                        <option value="creditScore">Credit Score</option>
+                        <option value="unknown">Unknown</option>
+                        <option value="all-impressions">All Impressions</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -700,23 +657,22 @@
             // Reset date filter type to exact
             document.getElementById('dateFilterType').value = 'exact';
             
-            // Reset hasFormData filter to all
-            document.getElementById('hasFormDataFilter').value = 'all';
-            
             // Reset geo filter to all
             document.getElementById('geoFilter').value = 'all';
-            
-            // Reset form name filter to all
-            document.getElementById('formNameFilter').value = 'all';
+
+            // Reset table selector
+            document.getElementById('mainTableSelect').value = '';
+            const tableContainer = document.getElementById('mainTableContainer');
+            if (tableContainer) {
+                tableContainer.innerHTML = '';
+            }
         }
 
         async function loadImpressions() {
             const apiUrl = document.getElementById('apiUrl').value;
             const filterDate = document.getElementById('filterDate').value;
             const dateFilterType = document.getElementById('dateFilterType').value;
-            const hasFormDataFilter = document.getElementById('hasFormDataFilter').value;
             const geoFilter = document.getElementById('geoFilter').value;
-            const formNameFilter = document.getElementById('formNameFilter').value;
             const contentDiv = document.getElementById('content');
 
             if (!apiUrl) {
@@ -753,10 +709,6 @@
                     params.append('country', 'US');
                 }
 
-                // Add hasFormData filter
-                if (hasFormDataFilter === 'true' || hasFormDataFilter === 'false') {
-                    params.append('hasFormData', hasFormDataFilter);
-                }
 
                 if (params.toString()) {
                     url += '?' + params.toString();
@@ -796,14 +748,6 @@
                 }
                 // "All Geos" (geoFilter === 'all') shows all impressions - no filtering needed
 
-                // Filter by form name
-                if (formNameFilter && formNameFilter !== 'all') {
-                    impressions = impressions.filter(imp => {
-                        const form = imp.form || {};
-                        const formName = form.formName || form.name || '';
-                        return formName === formNameFilter;
-                    });
-                }
 
                 // Display tables
                 if (impressions.length === 0) {
@@ -815,6 +759,12 @@
                     `;
                 } else {
                     contentDiv.innerHTML = createTables(impressions);
+                    
+                    // Show selected table if one was selected
+                    const selectedTable = document.getElementById('mainTableSelect').value;
+                    if (selectedTable) {
+                        showSelectedTable(selectedTable);
+                    }
                 }
             } catch (error) {
                 showError(`Error loading impressions: ${error.message}`);
@@ -836,66 +786,108 @@
                 </div>
             `;
 
-            // Home page LP Clicks Table
+            // Store impressions globally for dropdown functionality
+            window.allImpressions = impressions;
+
+            // Table container
             html += `
-                <div class="section">
-                    <h2 class="section-title">
-                        <span>Home page Lp clicks</span>
-                        <button class="export-btn" onclick="exportToCSV('lpClicksTable', 'home-page-lp-clicks')">📥 Export to CSV</button>
-                    </h2>
-                    <div class="table-wrapper" style="max-width: 600px;">
-                        ${createLpClicksTable(impressions)}
-                    </div>
-                </div>
-            `;
-
-            // Brand Clicks Tables by Category
-            const categories = [
-                { key: 'businessLoans', label: 'Business Loans' },
-                { key: 'personalLoans', label: 'Personal Loans' },
-                { key: 'autoLoans', label: 'Auto Loans' },
-                { key: 'studentLoans', label: 'Student Loans' },
-                { key: 'mortgageLoans', label: 'Mortgage Loans' },
-                { key: 'cryptoLoans', label: 'Crypto Loans' },
-                { key: 'goldAndSilver', label: 'Gold and Silver' },
-                { key: 'petInsurance', label: 'Pet Insurance' },
-                { key: 'creditScore', label: 'Credit Score' },
-                { key: 'unknown', label: 'Unknown' }
-            ];
-
-            // Group categories into pairs for 2-column layout
-            html += `<div class="brand-clicks-grid">`;
-            
-            categories.forEach((category, index) => {
-                html += `
-                    <div class="brand-click-section">
-                        <h2 class="section-title" style="font-size: 1.4em; margin-bottom: 15px;">
-                            <span>${category.label}</span>
-                            <button class="export-btn" onclick="exportToCSV('${category.key}BrandClicksTable', '${category.key}-brand-clicks')">📥 Export</button>
-                        </h2>
-                        <div class="table-wrapper">
-                            ${createCategoryBrandClicksTable(impressions, category.key, category.label)}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += `</div>`;
-
-            // All impressions table
-            html += `
-                <div class="section">
-                    <h2 class="section-title">
-                        <span>All Impressions</span>
-                        <button class="export-btn" onclick="exportToCSV('allImpressionsTable', 'all-impressions')">📥 Export to CSV</button>
-                    </h2>
-                    <div class="table-wrapper">
-                        ${createAllImpressionsTable(impressions)}
-                    </div>
-                </div>
+                <div id="mainTableContainer"></div>
             `;
 
             return html;
+        }
+
+        function showSelectedTable(tableType) {
+            const container = document.getElementById('mainTableContainer');
+            
+            if (!container) {
+                console.error('Table container not found');
+                return;
+            }
+            
+            if (!window.allImpressions) {
+                container.innerHTML = `
+                    <div class="section">
+                        <div style="padding: 20px; text-align: center; color: #495057;">
+                            Please click "Submit" first to load impressions data.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (!tableType) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const categoryLabels = {
+                'businessLoans': 'Business Loans',
+                'personalLoans': 'Personal Loans',
+                'autoLoans': 'Auto Loans',
+                'studentLoans': 'Student Loans',
+                'mortgageLoans': 'Mortgage Loans',
+                'cryptoLoans': 'Crypto Loans',
+                'goldAndSilver': 'Gold and Silver',
+                'petInsurance': 'Pet Insurance',
+                'creditScore': 'Credit Score',
+                'unknown': 'Unknown'
+            };
+
+            let html = '';
+
+            if (tableType === 'homepage-clicks') {
+                html += `
+                    <div class="section">
+                        <h2 class="section-title">
+                            <span>Home page Lp clicks</span>
+                            <button class="export-btn" onclick="exportToCSV('lpClicksTable', 'home-page-lp-clicks')">📥 Export to CSV</button>
+                        </h2>
+                        <div class="table-wrapper">
+                            ${createLpClicksTable(window.allImpressions)}
+                        </div>
+                    </div>
+                `;
+            } else if (categoryLabels[tableType]) {
+                // Brand clicks table for specific category
+                const categoryLabel = categoryLabels[tableType];
+                try {
+                    html += `
+                        <div class="section">
+                            <h2 class="section-title">
+                                <span>${categoryLabel} - Brand Clicks</span>
+                                <button class="export-btn" onclick="exportToCSV('${tableType}BrandClicksTable', '${tableType}-brand-clicks')">📥 Export</button>
+                            </h2>
+                            <div class="table-wrapper">
+                                ${createCategoryBrandClicksTable(window.allImpressions, tableType, categoryLabel)}
+                            </div>
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error('Error creating category table:', error);
+                    html += `
+                        <div class="section">
+                            <div style="padding: 20px; text-align: center; color: #dc3545;">
+                                Error loading table: ${error.message}
+                            </div>
+                        </div>
+                    `;
+                }
+            } else if (tableType === 'all-impressions') {
+                html += `
+                    <div class="section">
+                        <h2 class="section-title">
+                            <span>All Impressions</span>
+                            <button class="export-btn" onclick="exportToCSV('allImpressionsTable', 'all-impressions')">📥 Export to CSV</button>
+                        </h2>
+                        <div class="table-wrapper">
+                            ${createAllImpressionsTable(window.allImpressions)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
         }
 
         function createLpClicksTable(impressions) {
@@ -938,18 +930,18 @@
             });
 
             let html = `
-                <table id="lpClicksTable" style="font-size: 12px;">
+                <table id="lpClicksTable" style="font-size: 14px;">
                     <thead>
                         <tr>
-                            <th class="sortable-header" style="padding: 8px 10px;" onclick="sortLpClicksTable('category')">
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortLpClicksTable('category')">
                                 Category
                                 <span class="sort-arrow" id="sort-category">⇅</span>
                             </th>
-                            <th class="sortable-header" style="padding: 8px 10px; text-align: center;" onclick="sortLpClicksTable('clicks')">
+                            <th class="sortable-header" style="padding: 8px 12px; text-align: center;" onclick="sortLpClicksTable('clicks')">
                                 LP Clicks
                                 <span class="sort-arrow" id="sort-clicks">⇅</span>
                             </th>
-                            <th class="sortable-header" style="padding: 8px 10px; text-align: center;" onclick="sortLpClicksTable('percentage')">
+                            <th class="sortable-header" style="padding: 8px 12px; text-align: center;" onclick="sortLpClicksTable('percentage')">
                                 Percentage
                                 <span class="sort-arrow" id="sort-percentage">⇅</span>
                             </th>
@@ -957,18 +949,18 @@
                     </thead>
                     <tbody id="lpClicksTableBody">
                         <tr>
-                            <td style="padding: 6px 10px;"><strong>Total Impressions</strong></td>
-                            <td style="padding: 6px 10px; text-align: center;"><strong>${totalImpressions}</strong></td>
-                            <td style="padding: 6px 10px; text-align: center;"><strong>100.00%</strong></td>
+                            <td style="padding: 6px 12px;"><strong>Total Impressions</strong></td>
+                            <td style="padding: 6px 12px; text-align: center;"><strong>${totalImpressions}</strong></td>
+                            <td style="padding: 6px 12px; text-align: center;"><strong>100.00%</strong></td>
                         </tr>
             `;
 
             categoryData.forEach(item => {
                 html += `
                     <tr>
-                        <td style="padding: 6px 10px;">${item.category}</td>
-                        <td style="padding: 6px 10px; text-align: center;">${item.count}</td>
-                        <td style="padding: 6px 10px; text-align: center;">${item.percentage.toFixed(2)}%</td>
+                        <td style="padding: 6px 12px;">${item.category}</td>
+                        <td style="padding: 6px 12px; text-align: center;">${item.count}</td>
+                        <td style="padding: 6px 12px; text-align: center;">${item.percentage.toFixed(2)}%</td>
                     </tr>
                 `;
             });
@@ -1032,18 +1024,18 @@
             // Rebuild table rows (excluding Total Impressions row)
             let html = `
                 <tr>
-                    <td style="padding: 6px 10px;"><strong>Total Impressions</strong></td>
-                    <td style="padding: 6px 10px; text-align: center;"><strong>${window.lpClicksTotalImpressions}</strong></td>
-                    <td style="padding: 6px 10px; text-align: center;"><strong>100.00%</strong></td>
+                    <td style="padding: 6px 12px;"><strong>Total Impressions</strong></td>
+                    <td style="padding: 6px 12px; text-align: center;"><strong>${window.lpClicksTotalImpressions}</strong></td>
+                    <td style="padding: 6px 12px; text-align: center;"><strong>100.00%</strong></td>
                 </tr>
             `;
 
             sortedData.forEach(item => {
                 html += `
                     <tr>
-                        <td style="padding: 6px 10px;">${item.category}</td>
-                        <td style="padding: 6px 10px; text-align: center;">${item.count}</td>
-                        <td style="padding: 6px 10px; text-align: center;">${item.percentage.toFixed(2)}%</td>
+                        <td style="padding: 6px 12px;">${item.category}</td>
+                        <td style="padding: 6px 12px; text-align: center;">${item.count}</td>
+                        <td style="padding: 6px 12px; text-align: center;">${item.percentage.toFixed(2)}%</td>
                     </tr>
                 `;
             });
@@ -1095,60 +1087,62 @@
             const sortPrefix = pageKey.replace(/([A-Z])/g, '-$1').toLowerCase();
 
             let html = `
-                <table id="${tableId}" style="font-size: 12px;">
+                <table id="${tableId}" style="font-size: 14px;">
                     <thead>
                         <tr>
-                            <th class="sortable-header" style="padding: 8px 10px;" onclick="sortCategoryBrandClicksTable('${pageKey}', 'brand')">
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortCategoryBrandClicksTable('${pageKey}', 'brand')">
                                 Brand Name
                                 <span class="sort-arrow" id="sort-${sortPrefix}-brand-name">⇅</span>
                             </th>
-                            <th class="sortable-header" style="padding: 8px 10px; text-align: center;" onclick="sortCategoryBrandClicksTable('${pageKey}', 'clicks')">
+                            <th class="sortable-header" style="padding: 8px 12px; text-align: center;" onclick="sortCategoryBrandClicksTable('${pageKey}', 'clicks')">
                                 Total Clicks
                                 <span class="sort-arrow" id="sort-${sortPrefix}-brand-clicks">⇅</span>
                             </th>
-                            <th class="sortable-header" style="padding: 8px 10px; text-align: center;" onclick="sortCategoryBrandClicksTable('${pageKey}', 'percentage')">
+                            <th class="sortable-header" style="padding: 8px 12px; text-align: center;" onclick="sortCategoryBrandClicksTable('${pageKey}', 'percentage')">
                                 Percentage
                                 <span class="sort-arrow" id="sort-${sortPrefix}-brand-percentage">⇅</span>
                             </th>
                         </tr>
                     </thead>
                     <tbody id="${tbodyId}">
-                        <tr style="background-color: #f0f4ff; border-top: 2px solid #667eea;">
-                            <td style="padding: 14px 16px; font-weight: 700; color: #1a202c; font-size: 15px;">Total Users</td>
-                            <td style="padding: 14px 16px; text-align: center; font-weight: 700; color: #667eea; font-size: 15px;">${totalUsers}</td>
-                            <td style="padding: 14px 16px; text-align: center; font-weight: 700; color: #667eea;">—</td>
-                        </tr>
-                        <tr style="background-color: #f8f9ff;">
-                            <td style="padding: 12px 16px; font-weight: 600; color: #2d3748;">Total Brand Clicks</td>
-                            <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: #667eea;">${totalBrandClicks}</td>
-                            <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: #667eea;">${totalUsers > 0 ? ((totalBrandClicks / totalUsers) * 100).toFixed(2) : '0.00'}%</td>
+                        <tr>
+                            <td style="font-weight: 700; padding: 6px 12px;">Total Users</td>
+                            <td style="text-align: center; font-weight: 700; padding: 6px 12px;">${totalUsers}</td>
+                            <td style="text-align: center; font-weight: 700; padding: 6px 12px;">—</td>
                         </tr>
             `;
 
             if (brandData.length === 0) {
                 html += `
                     <tr>
-                        <td colspan="3" style="padding: 30px; text-align: center; color: #718096; font-style: italic;">
+                        <td colspan="3" style="padding: 12px; text-align: center;">
                             No brand clicks recorded for ${pageLabel}
                         </td>
                     </tr>
                 `;
             } else {
-                brandData.forEach((item, index) => {
+                brandData.forEach(item => {
                     // Percentage based on total users (how many users clicked this brand)
                     const percentage = totalUsers > 0 
                         ? ((item.count / totalUsers) * 100).toFixed(2) 
                         : '0.00';
-                    const isEven = index % 2 === 0;
                     html += `
-                        <tr style="${isEven ? 'background-color: #fafbff;' : ''}">
-                            <td style="padding: 12px 16px; color: #2d3748;">${item.brand}</td>
-                            <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: #4a5568;">${item.count}</td>
-                            <td style="padding: 12px 16px; text-align: center; color: #718096;">${percentage}%</td>
+                        <tr>
+                            <td style="padding: 6px 12px;">${item.brand}</td>
+                            <td style="text-align: center; padding: 6px 12px;">${item.count}</td>
+                            <td style="text-align: center; padding: 6px 12px;">${percentage}%</td>
                         </tr>
                     `;
                 });
             }
+            
+            html += `
+                        <tr>
+                            <td style="font-weight: 700; padding: 6px 12px;">Total Brand Clicks</td>
+                            <td style="text-align: center; font-weight: 700; padding: 6px 12px;">${totalBrandClicks}</td>
+                            <td style="text-align: center; font-weight: 700; padding: 6px 12px;">${totalUsers > 0 ? ((totalBrandClicks / totalUsers) * 100).toFixed(2) : '0.00'}%</td>
+                        </tr>
+            `;
 
             html += `
                     </tbody>
@@ -1229,42 +1223,44 @@
             const totalUsers = window.categoryBrandClicksUsers[pageKey] || 0;
             
             let html = `
-                <tr style="background-color: #f0f4ff; border-top: 2px solid #667eea;">
-                    <td style="padding: 14px 16px; font-weight: 700; color: #1a202c; font-size: 15px;">Total Users</td>
-                    <td style="padding: 14px 16px; text-align: center; font-weight: 700; color: #667eea; font-size: 15px;">${totalUsers}</td>
-                    <td style="padding: 14px 16px; text-align: center; font-weight: 700; color: #667eea;">—</td>
-                </tr>
-                <tr style="background-color: #f8f9ff;">
-                    <td style="padding: 12px 16px; font-weight: 600; color: #2d3748;">Total Brand Clicks</td>
-                    <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: #667eea;">${totalClicks}</td>
-                    <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: #667eea;">${totalUsers > 0 ? ((totalClicks / totalUsers) * 100).toFixed(2) : '0.00'}%</td>
+                <tr>
+                    <td style="font-weight: 700; padding: 6px 12px;">Total Users</td>
+                    <td style="text-align: center; font-weight: 700; padding: 6px 12px;">${totalUsers}</td>
+                    <td style="text-align: center; font-weight: 700; padding: 6px 12px;">—</td>
                 </tr>
             `;
 
             if (sortedData.length === 0) {
                 html += `
                     <tr>
-                        <td colspan="3" style="padding: 30px; text-align: center; color: #718096; font-style: italic;">
+                        <td colspan="3" style="padding: 12px; text-align: center;">
                             No brand clicks recorded
                         </td>
                     </tr>
                 `;
             } else {
-                sortedData.forEach((item, index) => {
+                sortedData.forEach(item => {
                     // Percentage based on total users (how many users clicked this brand)
                     const percentage = totalUsers > 0 
                         ? ((item.count / totalUsers) * 100).toFixed(2) 
                         : '0.00';
-                    const isEven = index % 2 === 0;
                     html += `
-                        <tr style="${isEven ? 'background-color: #fafbff;' : ''}">
-                            <td style="padding: 12px 16px; color: #2d3748;">${item.brand}</td>
-                            <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: #4a5568;">${item.count}</td>
-                            <td style="padding: 12px 16px; text-align: center; color: #718096;">${percentage}%</td>
+                        <tr>
+                            <td style="padding: 6px 12px;">${item.brand}</td>
+                            <td style="text-align: center; padding: 6px 12px;">${item.count}</td>
+                            <td style="text-align: center; padding: 6px 12px;">${percentage}%</td>
                         </tr>
                     `;
                 });
             }
+            
+            html += `
+                <tr>
+                    <td style="font-weight: 700; padding: 6px 12px;">Total Brand Clicks</td>
+                    <td style="text-align: center; font-weight: 700; padding: 6px 12px;">${totalClicks}</td>
+                    <td style="text-align: center; font-weight: 700; padding: 6px 12px;">${totalUsers > 0 ? ((totalClicks / totalUsers) * 100).toFixed(2) : '0.00'}%</td>
+                </tr>
+            `;
 
             tbody.innerHTML = html;
         }
@@ -1287,7 +1283,6 @@
                             <th>Browser</th>
                             <th>Location</th>
                             <th>Referrer</th>
-                            <th>Form Data</th>
                             <th>Sub1</th>
                             <th>Sub2</th>
                             <th>Sub3</th>
@@ -1311,8 +1306,6 @@
                     (impression.referrer.length > 60 ? impression.referrer.substring(0, 60) + '...' : impression.referrer) 
                     : '—';
 
-                const hasFormData = impression.hasFormData === true ? '✅ Yes' : '❌ No';
-
                 html += `
                     <tr>
                         <td class="id-cell" onclick="copyToClipboard('${id}')" title="Click to copy ID">${id}</td>
@@ -1324,7 +1317,6 @@
                         <td>${browser}</td>
                         <td class="geo-info">${location}</td>
                         <td title="${impression.referrer || ''}">${referrer}</td>
-                        <td>${hasFormData}</td>
                         <td>${impression.sub1 || '—'}</td>
                         <td>${impression.sub2 || '—'}</td>
                         <td>${impression.sub3 || '—'}</td>
@@ -1580,6 +1572,43 @@
             } catch (error) {
                 showError(`Error during cleanup: ${error.message}`);
             }
+        }
+
+        function showBrandClicksTable(categoryKey) {
+            const container = document.getElementById('brandClicksTableContainer');
+            if (!container || !window.allImpressions) return;
+
+            if (!categoryKey) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const categories = {
+                'businessLoans': 'Business Loans',
+                'personalLoans': 'Personal Loans',
+                'autoLoans': 'Auto Loans',
+                'studentLoans': 'Student Loans',
+                'mortgageLoans': 'Mortgage Loans',
+                'cryptoLoans': 'Crypto Loans',
+                'goldAndSilver': 'Gold and Silver',
+                'petInsurance': 'Pet Insurance',
+                'creditScore': 'Credit Score',
+                'unknown': 'Unknown'
+            };
+
+            const categoryLabel = categories[categoryKey] || categoryKey;
+
+            container.innerHTML = `
+                <div class="brand-click-section">
+                    <h2 class="section-title" style="font-size: 1.4em; margin-bottom: 15px;">
+                        <span>${categoryLabel}</span>
+                        <button class="export-btn" onclick="exportToCSV('${categoryKey}BrandClicksTable', '${categoryKey}-brand-clicks')">📥 Export</button>
+                    </h2>
+                    <div class="table-wrapper">
+                        ${createCategoryBrandClicksTable(window.allImpressions, categoryKey, categoryLabel)}
+                    </div>
+                </div>
+            `;
         }
 
         // Allow Enter key to submit
