@@ -68,11 +68,17 @@ export class Impression {
     lon: number | null;
   };
 
+  @Prop({ type: Object, default: () => ({}), required: true })
+  homepageClicks: Record<string, any>;
+
   @Prop({ type: Boolean, default: false })
-  hasLpClick: boolean;
+  hasHomepageClicks: boolean;
 
   @Prop({ type: Object, default: () => ({}), required: true })
-  lpClicks: Record<string, any>;
+  brandClicks: Record<string, any>;
+
+  @Prop({ type: Boolean, default: false })
+  hasBrandClicks: boolean;
 }
 
 export const ImpressionSchema = SchemaFactory.createForClass(Impression);

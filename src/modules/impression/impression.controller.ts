@@ -29,8 +29,10 @@ export class ImpressionController {
       sub9: impression.sub9,
       sub10: impression.sub10,
       geo: impression.geo,
-      hasLpClick: impression.hasLpClick,
-      lpClicks: impression.lpClicks,
+      hasHomepageClicks: impression.hasHomepageClicks,
+      homepageClicks: impression.homepageClicks,
+      hasBrandClicks: impression.hasBrandClicks,
+      brandClicks: impression.brandClicks,
       message: 'Impression data saved successfully',
     };
   }
@@ -50,11 +52,11 @@ export class ImpressionController {
     return { impression };
   }
 
-  @Post('lp-clicks')
+  @Post('homepage-clicks')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update LP clicks data for an impression' })
+  @ApiOperation({ summary: 'Update homepage clicks data for an impression' })
   @ApiBody({
-    description: 'LP clicks data with impression ID in body',
+    description: 'Homepage clicks data with impression ID in body',
     schema: {
       type: 'object',
       required: ['impressionId'],
@@ -64,30 +66,29 @@ export class ImpressionController {
       additionalProperties: true,
       example: {
         impressionId: '507f1f77bcf86cd799439011',
-        clickType: 'button',
-        elementId: 'apply-now',
+        'Business Loans': true,
         timestamp: '2025-12-17T10:30:00Z',
       },
     },
   })
   @ApiResponse({
     status: 200,
-    description: 'LP clicks data updated successfully',
+    description: 'Homepage clicks data updated successfully',
     schema: {
       type: 'object',
       properties: {
         id: { type: 'string', example: '507f1f77bcf86cd799439011' },
-        lpClicks: {
+        homepageClicks: {
           type: 'object',
           additionalProperties: true,
           example: {
-            clickType: 'button',
-            elementId: 'apply-now',
+            'Business Loans': true,
+            'Personal Loans': true,
             timestamp: '2025-12-17T10:30:00Z',
           },
         },
-        hasLpClick: { type: 'boolean', example: true },
-        message: { type: 'string', example: 'LP clicks data updated successfully' },
+        hasHomepageClicks: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'Homepage clicks data updated successfully' },
       },
     },
   })
@@ -95,17 +96,75 @@ export class ImpressionController {
     status: 404,
     description: 'Impression not found',
   })
-  async updateLpClicks(@Body() body: { impressionId: string; [key: string]: any }) {
-    const { impressionId, ...lpClicksData } = body;
-    const impression = await this.impressionService.updateLpClicks(impressionId, lpClicksData);
+  async updateHomepageClicks(@Body() body: { impressionId: string; [key: string]: any }) {
+    const { impressionId, ...clicksData } = body;
+    const impression = await this.impressionService.updateHomepageClicks(impressionId, clicksData);
     if (!impression) {
       throw new NotFoundException(`Impression record with ID ${impressionId} not found`);
     }
     return {
       id: impression._id.toString(),
-      lpClicks: impression.lpClicks,
-      hasLpClick: impression.hasLpClick,
-      message: 'LP clicks data updated successfully',
+      homepageClicks: impression.homepageClicks,
+      hasHomepageClicks: impression.hasHomepageClicks,
+      message: 'Homepage clicks data updated successfully',
+    };
+  }
+
+  @Post('brand-clicks')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update brand clicks data for an impression' })
+  @ApiBody({
+    description: 'Brand clicks data with impression ID in body',
+    schema: {
+      type: 'object',
+      required: ['impressionId'],
+      properties: {
+        impressionId: { type: 'string', example: '507f1f77bcf86cd799439011' },
+      },
+      additionalProperties: true,
+      example: {
+        impressionId: '507f1f77bcf86cd799439011',
+        Fundera: true,
+        timestamp: '2025-12-17T10:30:00Z',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Brand clicks data updated successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', example: '507f1f77bcf86cd799439011' },
+        brandClicks: {
+          type: 'object',
+          additionalProperties: true,
+          example: {
+            Fundera: true,
+            Lendio: true,
+            timestamp: '2025-12-17T10:30:00Z',
+          },
+        },
+        hasBrandClicks: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'Brand clicks data updated successfully' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Impression not found',
+  })
+  async updateBrandClicks(@Body() body: { impressionId: string; [key: string]: any }) {
+    const { impressionId, ...clicksData } = body;
+    const impression = await this.impressionService.updateBrandClicks(impressionId, clicksData);
+    if (!impression) {
+      throw new NotFoundException(`Impression record with ID ${impressionId} not found`);
+    }
+    return {
+      id: impression._id.toString(),
+      brandClicks: impression.brandClicks,
+      hasBrandClicks: impression.hasBrandClicks,
+      message: 'Brand clicks data updated successfully',
     };
   }
 

@@ -825,9 +825,9 @@
             });
 
             impressions.forEach(impression => {
-                const lpClicks = impression.lpClicks || {};
+                const homepageClicks = impression.homepageClicks || {};
                 categories.forEach(category => {
-                    if (lpClicks[category] === true) {
+                    if (homepageClicks[category] === true) {
                         categoryCounts[category]++;
                     }
                 });

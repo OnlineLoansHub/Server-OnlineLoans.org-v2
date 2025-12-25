@@ -35,8 +35,10 @@ export class ImpressionService {
       userIp,
       userAgent,
       referrer,
-      hasLpClick: false,
-      lpClicks: {},
+      hasHomepageClicks: false,
+      homepageClicks: {},
+      hasBrandClicks: false,
+      brandClicks: {},
       geo: {
         country: '',
         region: '',
@@ -164,11 +166,19 @@ export class ImpressionService {
     if (filters['geo.city']) filter['geo.city'] = { $regex: filters['geo.city'], $options: 'i' };
     if (filters['geo.timezone']) filter['geo.timezone'] = filters['geo.timezone'];
 
-    // Handle hasLpClick boolean filter
-    if (typeof filters.hasLpClick !== 'undefined') {
-      const value = String(filters.hasLpClick).toLowerCase();
+    // Handle hasHomepageClicks boolean filter
+    if (typeof filters.hasHomepageClicks !== 'undefined') {
+      const value = String(filters.hasHomepageClicks).toLowerCase();
       if (value === 'true' || value === 'false') {
-        filter.hasLpClick = value === 'true';
+        filter.hasHomepageClicks = value === 'true';
+      }
+    }
+
+    // Handle hasBrandClicks boolean filter
+    if (typeof filters.hasBrandClicks !== 'undefined') {
+      const value = String(filters.hasBrandClicks).toLowerCase();
+      if (value === 'true' || value === 'false') {
+        filter.hasBrandClicks = value === 'true';
       }
     }
 
@@ -198,31 +208,62 @@ export class ImpressionService {
     return this.impressionModel.findById(id).exec();
   }
 
-  async updateLpClicks(id: string, lpClicksData: Record<string, any>): Promise<ImpressionDocument | null> {
+  async updateHomepageClicks(id: string, clicksData: Record<string, any>): Promise<ImpressionDocument | null> {
     const impression = await this.impressionModel.findById(id).exec();
     if (!impression) {
       return null;
     }
 
-    // Merge the new lpClicks data with existing lpClicks data
-    const updatedLpClicks = {
-      ...(impression.lpClicks || {}),
-      ...lpClicksData,
+    // Merge the new homepageClicks data with existing homepageClicks data
+    const updatedClicks = {
+      ...(impression.homepageClicks || {}),
+      ...clicksData,
     };
 
-    // Check if lpClicks has any data (has at least one key with a non-empty value)
-    const hasLpClick = Object.keys(updatedLpClicks).length > 0 && 
-      Object.values(updatedLpClicks).some(value => {
+    // Check if homepageClicks has any data (has at least one key with a non-empty value)
+    const hasHomepageClicks = Object.keys(updatedClicks).length > 0 && 
+      Object.values(updatedClicks).some(value => {
         if (value === null || value === undefined) return false;
         if (typeof value === 'string' && value.trim() === '') return false;
         if (typeof value === 'object' && Object.keys(value).length === 0) return false;
         return true;
       });
 
-    // Update both lpClicks and hasLpClick fields
+    // Update both homepageClicks and hasHomepageClicks fields
     const updated = await this.impressionModel.findByIdAndUpdate(
       id,
-      { $set: { lpClicks: updatedLpClicks, hasLpClick } },
+      { $set: { homepageClicks: updatedClicks, hasHomepageClicks } },
+      { new: true, runValidators: true },
+    ).exec();
+
+    return updated;
+  }
+
+  async updateBrandClicks(id: string, clicksData: Record<string, any>): Promise<ImpressionDocument | null> {
+    const impression = await this.impressionModel.findById(id).exec();
+    if (!impression) {
+      return null;
+    }
+
+    // Merge the new brandClicks data with existing brandClicks data
+    const updatedClicks = {
+      ...(impression.brandClicks || {}),
+      ...clicksData,
+    };
+
+    // Check if brandClicks has any data (has at least one key with a non-empty value)
+    const hasBrandClicks = Object.keys(updatedClicks).length > 0 && 
+      Object.values(updatedClicks).some(value => {
+        if (value === null || value === undefined) return false;
+        if (typeof value === 'string' && value.trim() === '') return false;
+        if (typeof value === 'object' && Object.keys(value).length === 0) return false;
+        return true;
+      });
+
+    // Update both brandClicks and hasBrandClicks fields
+    const updated = await this.impressionModel.findByIdAndUpdate(
+      id,
+      { $set: { brandClicks: updatedClicks, hasBrandClicks } },
       { new: true, runValidators: true },
     ).exec();
 
