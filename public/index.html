@@ -192,13 +192,25 @@
         }
 
         .table-wrapper {
-            overflow-x: visible;
+            overflow-x: auto;
             overflow-y: visible;
             border: 1px solid #000;
-            width: fit-content;
+            width: 100%;
+            max-width: 100%;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
             background: white;
+        }
+
+        .table-wrapper table {
+            width: auto;
+            min-width: fit-content;
+        }
+
+        .table-wrapper-compact {
+            display: inline-block;
+            width: auto;
+            max-width: 100%;
         }
 
         .table-wrapper::-webkit-scrollbar {
@@ -858,8 +870,17 @@
                                 <span>${categoryLabel} - Brand Clicks</span>
                                 <button class="export-btn" onclick="exportToCSV('${tableType}BrandClicksTable', '${tableType}-brand-clicks')">📥 Export</button>
                             </h2>
-                            <div class="table-wrapper">
+                            <div class="table-wrapper table-wrapper-compact">
                                 ${createCategoryBrandClicksTable(window.allImpressions, tableType, categoryLabel)}
+                            </div>
+                        </div>
+                        <div class="section" style="margin-top: 30px;">
+                            <h2 class="section-title">
+                                <span>${categoryLabel} - Impressions Data</span>
+                                <button class="export-btn" onclick="exportToCSV('${tableType}ImpressionsTable', '${tableType}-impressions')">📥 Export to CSV</button>
+                            </h2>
+                            <div class="table-wrapper">
+                                ${createCategoryImpressionsTable(window.allImpressions, tableType, categoryLabel)}
                             </div>
                         </div>
                     `;
@@ -1288,6 +1309,8 @@
                             <th>Sub3</th>
                             <th>Sub4</th>
                             <th>Sub5</th>
+                            <th>Sub6</th>
+                            <th>Sub7</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1322,6 +1345,93 @@
                         <td>${impression.sub3 || '—'}</td>
                         <td>${impression.sub4 || '—'}</td>
                         <td>${impression.sub5 || '—'}</td>
+                        <td>${impression.sub6 || '—'}</td>
+                        <td>${impression.sub7 || '—'}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            return html;
+        }
+
+        function createCategoryImpressionsTable(impressions, pageKey, pageLabel) {
+            // Filter impressions that have clicked on brands in this category
+            const filteredImpressions = impressions.filter(impression => {
+                const pageData = impression[pageKey];
+                if (pageData !== undefined && pageData !== null && typeof pageData === 'object') {
+                    // Check if there's at least one brand click (value === true)
+                    return Object.values(pageData).some(value => value === true);
+                }
+                return false;
+            });
+
+            if (filteredImpressions.length === 0) {
+                return '<div class="empty-state"><p>No impressions found with brand clicks for ' + pageLabel + '</p></div>';
+            }
+
+            const tableId = `${pageKey}ImpressionsTable`;
+
+            let html = `
+                <table id="${tableId}">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date ${getGMTOffset()}</th>
+                            <th>IP Address</th>
+                            <th>Device</th>
+                            <th>UA Bot</th>
+                            <th>OP</th>
+                            <th>Browser</th>
+                            <th>Location</th>
+                            <th>Referrer</th>
+                            <th>Sub1</th>
+                            <th>Sub2</th>
+                            <th>Sub3</th>
+                            <th>Sub4</th>
+                            <th>Sub5</th>
+                            <th>Sub6</th>
+                            <th>Sub7</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            filteredImpressions.forEach(impression => {
+                const id = impression._id || impression.id;
+                const date = formatDate(impression.createdAt);
+                const deviceBadge = getDeviceBadge(impression.deviceType);
+                const userAgent = impression.userAgent || '';
+                const isBot = userAgent.toLowerCase().includes('bot') ? '✓' : '✗';
+                const os = extractOS(userAgent);
+                const browser = extractBrowser(userAgent);
+                const location = formatLocation(impression.geo);
+                const referrer = impression.referrer ? 
+                    (impression.referrer.length > 60 ? impression.referrer.substring(0, 60) + '...' : impression.referrer) 
+                    : '—';
+
+                html += `
+                    <tr>
+                        <td class="id-cell" onclick="copyToClipboard('${id}')" title="Click to copy ID">${id}</td>
+                        <td>${date}</td>
+                        <td>${impression.userIp || 'N/A'}</td>
+                        <td>${deviceBadge}</td>
+                        <td>${isBot}</td>
+                        <td>${os}</td>
+                        <td>${browser}</td>
+                        <td class="geo-info">${location}</td>
+                        <td title="${impression.referrer || ''}">${referrer}</td>
+                        <td>${impression.sub1 || '—'}</td>
+                        <td>${impression.sub2 || '—'}</td>
+                        <td>${impression.sub3 || '—'}</td>
+                        <td>${impression.sub4 || '—'}</td>
+                        <td>${impression.sub5 || '—'}</td>
+                        <td>${impression.sub6 || '—'}</td>
+                        <td>${impression.sub7 || '—'}</td>
                     </tr>
                 `;
             });
