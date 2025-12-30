@@ -272,6 +272,9 @@ export class ImpressionService {
         { 'geo.city': 'Shoresh' },
         { referrer: { $regex: /localhost/i } },
         { referrer: { $regex: /10\.0\.0\.7/i } },
+        { sub1: 'test1' },
+        { sub1: 'test2' },
+        { sub1: 'test3' },
       ],
     };
 
@@ -287,4 +290,3 @@ export class ImpressionService {
     };
   }
 }
-

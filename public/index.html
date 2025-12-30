@@ -580,7 +580,15 @@
                     <select id="geoFilter">
                         <option value="all">All Geos</option>
                         <option value="usa">USA</option>
-                        <option value="usa-unknown">USA + Unknown</option>
+                        <option value="usa-unknown" selected>USA + Unknown</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>UA Bot</label>
+                    <select id="botFilter">
+                        <option value="hide">Hide Bots</option>
+                        <option value="all">Show All</option>
+                        <option value="only">Show Bots Only</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -598,7 +606,7 @@
                         <option value="petInsurance">Pet Insurance</option>
                         <option value="creditScore">Credit Score</option>
                         <option value="unknown">Unknown</option>
-                        <option value="all-impressions">All Impressions</option>
+                        <option value="all-impressions" selected>All Impressions</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -669,11 +677,14 @@
             // Reset date filter type to exact
             document.getElementById('dateFilterType').value = 'exact';
             
-            // Reset geo filter to all
-            document.getElementById('geoFilter').value = 'all';
+            // Reset geo filter to default (USA + Unknown)
+            document.getElementById('geoFilter').value = 'usa-unknown';
 
-            // Reset table selector
-            document.getElementById('mainTableSelect').value = '';
+            // Reset bot filter to hide (default)
+            document.getElementById('botFilter').value = 'hide';
+
+            // Reset table selector to default (All Impressions)
+            document.getElementById('mainTableSelect').value = 'all-impressions';
             const tableContainer = document.getElementById('mainTableContainer');
             if (tableContainer) {
                 tableContainer.innerHTML = '';
@@ -685,6 +696,7 @@
             const filterDate = document.getElementById('filterDate').value;
             const dateFilterType = document.getElementById('dateFilterType').value;
             const geoFilter = document.getElementById('geoFilter').value;
+            const botFilter = document.getElementById('botFilter').value;
             const contentDiv = document.getElementById('content');
 
             if (!apiUrl) {
@@ -760,6 +772,21 @@
                 }
                 // "All Geos" (geoFilter === 'all') shows all impressions - no filtering needed
 
+                // Filter by UA Bot
+                if (botFilter === 'hide') {
+                    // Hide bots (default) - filter out impressions where userAgent contains 'bot'
+                    impressions = impressions.filter(imp => {
+                        const userAgent = (imp.userAgent || '').toLowerCase();
+                        return !userAgent.includes('bot');
+                    });
+                } else if (botFilter === 'only') {
+                    // Show only bots - filter to show only impressions where userAgent contains 'bot'
+                    impressions = impressions.filter(imp => {
+                        const userAgent = (imp.userAgent || '').toLowerCase();
+                        return userAgent.includes('bot');
+                    });
+                }
+                // "Show All" (botFilter === 'all') shows all impressions - no filtering needed
 
                 // Display tables
                 if (impressions.length === 0) {
@@ -783,17 +810,94 @@
             }
         }
 
+        // Helper function to check if a value is not empty
+        function isNotEmpty(value) {
+            if (value === null || value === undefined) return false;
+            if (typeof value === 'string' && value.trim() === '') return false;
+            if (typeof value === 'object' && Object.keys(value).length === 0) return false;
+            return true;
+        }
+
+        // Helper function to check if impression has LP clicks
+        function hasLpClick(impression) {
+            // Check 1: hasHomepageClicks === true
+            if (impression.hasHomepageClicks === true) {
+                return true;
+            }
+
+            // Check 2-10: Check if any category key exists directly on the document and is not empty
+            const categoryKeys = [
+                'businessLoans',
+                'studentLoans',
+                'personalLoans',
+                'mortgageLoans',
+                'autoLoans',
+                'petInsurance',
+                'creditScore',
+                'cryptoLoans',
+                'goldAndSilver'
+            ];
+
+            return categoryKeys.some(key => {
+                const value = impression[key];
+                return value !== undefined && isNotEmpty(value);
+            });
+        }
+
         function createTables(impressions) {
             let html = '';
 
+            // Calculate total LP clicks
+            const totalLpClicks = impressions.filter(impression => hasLpClick(impression)).length;
+
+            // Categories for LP clicks
+            const categories = [
+                'Business Loans',
+                'Mortgage Loans',
+                'Student Loans',
+                'Personal Loans',
+                'Auto Loans',
+                'Pet Insurance',
+                'Credit Score',
+                'Crypto Loans',
+                'Gold and Silver'
+            ];
+
+            // Calculate clicks for each category
+            const categoryCounts = {};
+            categories.forEach(category => {
+                categoryCounts[category] = impressions.filter(impression => {
+                    const homepageClicks = impression.homepageClicks || {};
+                    return homepageClicks[category] === true;
+                }).length;
+            });
+
             // Stats section at the top
+            let statsCards = `
+                <div class="stat-card">
+                    <div class="number">${impressions.length}</div>
+                    <div class="label">Total Impressions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">${totalLpClicks}</div>
+                    <div class="label">Total LP Clicks</div>
+                </div>
+            `;
+
+            // Add stat cards for each category
+            categories.forEach(category => {
+                statsCards += `
+                    <div class="stat-card">
+                        <div class="number">${categoryCounts[category]}</div>
+                        <div class="label">Total ${category} LP Clicks</div>
+                    </div>
+                `;
+            });
+
             html += `
                 <div class="stats-section">
                     <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="number">${impressions.length}</div>
-                            <div class="label">Total Impressions</div>
-                        </div>
+                        ${statsCards}
                     </div>
                 </div>
             `;
@@ -1295,25 +1399,81 @@
                 <table id="allImpressionsTable">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Date ${getGMTOffset()}</th>
-                            <th>IP Address</th>
-                            <th>Device</th>
-                            <th>UA Bot</th>
-                            <th>OP</th>
-                            <th>Browser</th>
-                            <th>Location</th>
-                            <th>Referrer</th>
-                            <th>Sub1</th>
-                            <th>Sub2</th>
-                            <th>Sub3</th>
-                            <th>Sub4</th>
-                            <th>Sub5</th>
-                            <th>Sub6</th>
-                            <th>Sub7</th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('id')">
+                                ID
+                                <span class="sort-arrow" id="sort-all-id">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('date')">
+                                Date ${getGMTOffset()}
+                                <span class="sort-arrow" id="sort-all-date">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('ip')">
+                                IP Address
+                                <span class="sort-arrow" id="sort-all-ip">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('device')">
+                                Device
+                                <span class="sort-arrow" id="sort-all-device">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px; text-align: center;" onclick="sortAllImpressionsTable('bot')">
+                                UA Bot
+                                <span class="sort-arrow" id="sort-all-bot">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('os')">
+                                OP
+                                <span class="sort-arrow" id="sort-all-os">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('browser')">
+                                Browser
+                                <span class="sort-arrow" id="sort-all-browser">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('location')">
+                                Location
+                                <span class="sort-arrow" id="sort-all-location">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px; text-align: center;" onclick="sortAllImpressionsTable('lpClick')">
+                                LP Click
+                                <span class="sort-arrow" id="sort-all-lpClick">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px; text-align: center;" onclick="sortAllImpressionsTable('blLpc')">
+                                BL LPC
+                                <span class="sort-arrow" id="sort-all-blLpc">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('referrer')">
+                                Referrer
+                                <span class="sort-arrow" id="sort-all-referrer">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('sub1')">
+                                Sub1
+                                <span class="sort-arrow" id="sort-all-sub1">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('sub2')">
+                                Sub2
+                                <span class="sort-arrow" id="sort-all-sub2">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('sub3')">
+                                Sub3
+                                <span class="sort-arrow" id="sort-all-sub3">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('sub4')">
+                                Sub4
+                                <span class="sort-arrow" id="sort-all-sub4">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('sub5')">
+                                Sub5
+                                <span class="sort-arrow" id="sort-all-sub5">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('sub6')">
+                                Sub6
+                                <span class="sort-arrow" id="sort-all-sub6">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('sub7')">
+                                Sub7
+                                <span class="sort-arrow" id="sort-all-sub7">⇅</span>
+                            </th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="allImpressionsTableBody">
             `;
 
             impressions.forEach(impression => {
@@ -1329,6 +1489,14 @@
                     (impression.referrer.length > 60 ? impression.referrer.substring(0, 60) + '...' : impression.referrer) 
                     : '—';
 
+                // Check if user has any LP clicks
+                const hasLpClickValue = hasLpClick(impression);
+                const lpClickIcon = hasLpClickValue ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
+
+                // Check if businessLoans key exists and is not empty
+                const hasBusinessLoans = impression.businessLoans !== undefined && isNotEmpty(impression.businessLoans);
+                const blLpcIcon = hasBusinessLoans ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
+
                 html += `
                     <tr>
                         <td class="id-cell" onclick="copyToClipboard('${id}')" title="Click to copy ID">${id}</td>
@@ -1339,6 +1507,8 @@
                         <td>${os}</td>
                         <td>${browser}</td>
                         <td class="geo-info">${location}</td>
+                        <td style="text-align: center;">${lpClickIcon}</td>
+                        <td style="text-align: center;">${blLpcIcon}</td>
                         <td title="${impression.referrer || ''}">${referrer}</td>
                         <td>${impression.sub1 || '—'}</td>
                         <td>${impression.sub2 || '—'}</td>
@@ -1356,7 +1526,150 @@
                 </table>
             `;
 
+            // Store impressions globally for sorting
+            window.allImpressionsData = impressions;
+            window.allImpressionsCurrentSort = { column: null, direction: 'asc' };
+
             return html;
+        }
+
+        function sortAllImpressionsTable(column) {
+            const tbody = document.getElementById('allImpressionsTableBody');
+            if (!tbody || !window.allImpressionsData) return;
+
+            const impressions = window.allImpressionsData;
+            const currentSort = window.allImpressionsCurrentSort;
+
+            // Determine sort direction
+            let direction = 'asc';
+            if (currentSort.column === column && currentSort.direction === 'asc') {
+                direction = 'desc';
+            }
+
+            // Sort the impressions
+            const sortedImpressions = [...impressions].sort((a, b) => {
+                let comparison = 0;
+                
+                if (column === 'id') {
+                    const idA = (a._id || a.id || '').toString();
+                    const idB = (b._id || b.id || '').toString();
+                    comparison = idA.localeCompare(idB);
+                } else if (column === 'date') {
+                    const dateA = new Date(a.createdAt || 0).getTime();
+                    const dateB = new Date(b.createdAt || 0).getTime();
+                    comparison = dateA - dateB;
+                } else if (column === 'ip') {
+                    const ipA = (a.userIp || '').toString();
+                    const ipB = (b.userIp || '').toString();
+                    comparison = ipA.localeCompare(ipB);
+                } else if (column === 'device') {
+                    const deviceA = (a.deviceType || '').toString();
+                    const deviceB = (b.deviceType || '').toString();
+                    comparison = deviceA.localeCompare(deviceB);
+                } else if (column === 'bot') {
+                    const userAgentA = (a.userAgent || '').toLowerCase();
+                    const userAgentB = (b.userAgent || '').toLowerCase();
+                    const isBotA = userAgentA.includes('bot') ? 1 : 0;
+                    const isBotB = userAgentB.includes('bot') ? 1 : 0;
+                    comparison = isBotA - isBotB;
+                } else if (column === 'os') {
+                    const osA = extractOS(a.userAgent || '');
+                    const osB = extractOS(b.userAgent || '');
+                    comparison = osA.localeCompare(osB);
+                } else if (column === 'browser') {
+                    const browserA = extractBrowser(a.userAgent || '');
+                    const browserB = extractBrowser(b.userAgent || '');
+                    comparison = browserA.localeCompare(browserB);
+                } else if (column === 'location') {
+                    const locationA = formatLocation(a.geo);
+                    const locationB = formatLocation(b.geo);
+                    comparison = locationA.localeCompare(locationB);
+                } else if (column === 'lpClick') {
+                    const hasLpClickA = hasLpClick(a) ? 1 : 0;
+                    const hasLpClickB = hasLpClick(b) ? 1 : 0;
+                    comparison = hasLpClickA - hasLpClickB;
+                } else if (column === 'blLpc') {
+                    const hasBlLpcA = (a.businessLoans !== undefined && isNotEmpty(a.businessLoans)) ? 1 : 0;
+                    const hasBlLpcB = (b.businessLoans !== undefined && isNotEmpty(b.businessLoans)) ? 1 : 0;
+                    comparison = hasBlLpcA - hasBlLpcB;
+                } else if (column === 'referrer') {
+                    const referrerA = (a.referrer || '').toString();
+                    const referrerB = (b.referrer || '').toString();
+                    comparison = referrerA.localeCompare(referrerB);
+                } else if (column.startsWith('sub')) {
+                    const subNum = column.replace('sub', '');
+                    const subA = (a[`sub${subNum}`] || '').toString();
+                    const subB = (b[`sub${subNum}`] || '').toString();
+                    comparison = subA.localeCompare(subB);
+                }
+
+                return direction === 'asc' ? comparison : -comparison;
+            });
+
+            // Update sort state
+            window.allImpressionsCurrentSort = { column, direction };
+
+            // Update sort arrows
+            document.querySelectorAll('#allImpressionsTable .sort-arrow').forEach(arrow => {
+                arrow.textContent = '⇅';
+                arrow.classList.remove('active');
+            });
+
+            const arrowId = `sort-all-${column}`;
+            const arrow = document.getElementById(arrowId);
+            if (arrow) {
+                arrow.textContent = direction === 'asc' ? '↑' : '↓';
+                arrow.classList.add('active');
+            }
+
+            // Rebuild table rows
+            let html = '';
+            sortedImpressions.forEach(impression => {
+                const id = impression._id || impression.id;
+                const date = formatDate(impression.createdAt);
+                const deviceBadge = getDeviceBadge(impression.deviceType);
+                const userAgent = impression.userAgent || '';
+                const isBot = userAgent.toLowerCase().includes('bot') ? '✓' : '✗';
+                const os = extractOS(userAgent);
+                const browser = extractBrowser(userAgent);
+                const location = formatLocation(impression.geo);
+                const referrer = impression.referrer ? 
+                    (impression.referrer.length > 60 ? impression.referrer.substring(0, 60) + '...' : impression.referrer) 
+                    : '—';
+
+                // Check if user has any LP clicks
+                const hasLpClickValue = hasLpClick(impression);
+                const lpClickIcon = hasLpClickValue ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
+
+                // Check if businessLoans key exists and is not empty
+                const hasBusinessLoans = impression.businessLoans !== undefined && isNotEmpty(impression.businessLoans);
+                const blLpcIcon = hasBusinessLoans ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
+
+                html += `
+                    <tr>
+                        <td class="id-cell" onclick="copyToClipboard('${id}')" title="Click to copy ID">${id}</td>
+                        <td>${date}</td>
+                        <td>${impression.userIp || 'N/A'}</td>
+                        <td>${deviceBadge}</td>
+                        <td>${isBot}</td>
+                        <td>${os}</td>
+                        <td>${browser}</td>
+                        <td class="geo-info">${location}</td>
+                        <td style="text-align: center;">${lpClickIcon}</td>
+                        <td style="text-align: center;">${blLpcIcon}</td>
+                        <td title="${impression.referrer || ''}">${referrer}</td>
+                        <td>${impression.sub1 || '—'}</td>
+                        <td>${impression.sub2 || '—'}</td>
+                        <td>${impression.sub3 || '—'}</td>
+                        <td>${impression.sub4 || '—'}</td>
+                        <td>${impression.sub5 || '—'}</td>
+                        <td>${impression.sub6 || '—'}</td>
+                        <td>${impression.sub7 || '—'}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
         }
 
         function createCategoryImpressionsTable(impressions, pageKey, pageLabel) {
