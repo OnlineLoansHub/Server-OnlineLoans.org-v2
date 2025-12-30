@@ -662,6 +662,15 @@
             // Set today's date as default
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('filterDate').value = today;
+            
+            // Set default filters
+            document.getElementById('dateFilterType').value = 'exact';
+            document.getElementById('geoFilter').value = 'usa-unknown';
+            document.getElementById('botFilter').value = 'hide';
+            document.getElementById('mainTableSelect').value = 'all-impressions';
+            
+            // Automatically load impressions with default filters
+            loadImpressions();
         });
 
         // Save API URL when changed
@@ -847,8 +856,15 @@
         function createTables(impressions) {
             let html = '';
 
-            // Calculate total LP clicks
-            const totalLpClicks = impressions.filter(impression => hasLpClick(impression)).length;
+            // Calculate total home page clicks - sum of objects inside homepageClicks where hasHomepageClicks = true
+            const totalHomePageClicks = impressions
+                .filter(impression => impression.hasHomepageClicks === true)
+                .reduce((sum, impression) => {
+                    const homepageClicks = impression.homepageClicks || {};
+                    // Count keys in homepageClicks object (excluding timestamp if present)
+                    const clickCount = Object.keys(homepageClicks).filter(key => key !== 'timestamp').length;
+                    return sum + clickCount;
+                }, 0);
 
             // Categories for LP clicks
             const categories = [
@@ -864,13 +880,39 @@
             ];
 
             // Calculate clicks for each category
+            // Map category display name to document key
+            const categoryKeyMap = {
+                'Business Loans': 'businessLoans',
+                'Mortgage Loans': 'mortgageLoans',
+                'Student Loans': 'studentLoans',
+                'Personal Loans': 'personalLoans',
+                'Auto Loans': 'autoLoans',
+                'Pet Insurance': 'petInsurance',
+                'Credit Score': 'creditScore',
+                'Crypto Loans': 'cryptoLoans',
+                'Gold and Silver': 'goldAndSilver'
+            };
+            
             const categoryCounts = {};
             categories.forEach(category => {
-                categoryCounts[category] = impressions.filter(impression => {
-                    const homepageClicks = impression.homepageClicks || {};
-                    return homepageClicks[category] === true;
-                }).length;
+                const documentKey = categoryKeyMap[category];
+                // Sum of objects inside category objects
+                categoryCounts[category] = impressions
+                    .filter(impression => {
+                        return impression[documentKey] !== undefined && isNotEmpty(impression[documentKey]);
+                    })
+                    .reduce((sum, impression) => {
+                        const categoryData = impression[documentKey];
+                        // If it's an object, count the keys; otherwise count as 1
+                        if (typeof categoryData === 'object' && categoryData !== null) {
+                            return sum + Object.keys(categoryData).length;
+                        }
+                        return sum + 1;
+                    }, 0);
             });
+
+            // Calculate total LP clicks as sum of homepage clicks + all category clicks
+            const totalLpClicks = totalHomePageClicks + Object.values(categoryCounts).reduce((sum, count) => sum + count, 0);
 
             // Stats section at the top
             let statsCards = `
@@ -881,6 +923,10 @@
                 <div class="stat-card">
                     <div class="number">${totalLpClicks}</div>
                     <div class="label">Total LP Clicks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">${totalHomePageClicks}</div>
+                    <div class="label">Total Home Page Clicks</div>
                 </div>
             `;
 
@@ -1028,17 +1074,36 @@
                 'Gold and Silver'
             ];
 
-            // Count lpClicks for each category
+            // Map category display name to document key
+            const categoryKeyMap = {
+                'Business Loans': 'businessLoans',
+                'Mortgage Loans': 'mortgageLoans',
+                'Student Loans': 'studentLoans',
+                'Personal Loans': 'personalLoans',
+                'Auto Loans': 'autoLoans',
+                'Pet Insurance': 'petInsurance',
+                'Credit Score': 'creditScore',
+                'Crypto Loans': 'cryptoLoans',
+                'Gold and Silver': 'goldAndSilver'
+            };
+            
+            // Count lpClicks for each category - sum of objects inside category objects
             const categoryCounts = {};
             categories.forEach(category => {
                 categoryCounts[category] = 0;
             });
 
             impressions.forEach(impression => {
-                const homepageClicks = impression.homepageClicks || {};
                 categories.forEach(category => {
-                    if (homepageClicks[category] === true) {
-                        categoryCounts[category]++;
+                    const documentKey = categoryKeyMap[category];
+                    if (impression[documentKey] !== undefined && isNotEmpty(impression[documentKey])) {
+                        const categoryData = impression[documentKey];
+                        // If it's an object, count the keys; otherwise count as 1
+                        if (typeof categoryData === 'object' && categoryData !== null) {
+                            categoryCounts[category] += Object.keys(categoryData).length;
+                        } else {
+                            categoryCounts[category]++;
+                        }
                     }
                 });
             });
@@ -1435,6 +1500,10 @@
                                 LP Click
                                 <span class="sort-arrow" id="sort-all-lpClick">⇅</span>
                             </th>
+                            <th class="sortable-header" style="padding: 8px 12px; text-align: center;" onclick="sortAllImpressionsTable('hpLpc')">
+                                HP LPC
+                                <span class="sort-arrow" id="sort-all-hpLpc">⇅</span>
+                            </th>
                             <th class="sortable-header" style="padding: 8px 12px; text-align: center;" onclick="sortAllImpressionsTable('blLpc')">
                                 BL LPC
                                 <span class="sort-arrow" id="sort-all-blLpc">⇅</span>
@@ -1493,6 +1562,10 @@
                 const hasLpClickValue = hasLpClick(impression);
                 const lpClickIcon = hasLpClickValue ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
 
+                // Check if hasHomepageClicks is true
+                const hasHomepageClicks = impression.hasHomepageClicks === true;
+                const hpLpcIcon = hasHomepageClicks ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
+
                 // Check if businessLoans key exists and is not empty
                 const hasBusinessLoans = impression.businessLoans !== undefined && isNotEmpty(impression.businessLoans);
                 const blLpcIcon = hasBusinessLoans ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
@@ -1508,6 +1581,7 @@
                         <td>${browser}</td>
                         <td class="geo-info">${location}</td>
                         <td style="text-align: center;">${lpClickIcon}</td>
+                        <td style="text-align: center;">${hpLpcIcon}</td>
                         <td style="text-align: center;">${blLpcIcon}</td>
                         <td title="${impression.referrer || ''}">${referrer}</td>
                         <td>${impression.sub1 || '—'}</td>
@@ -1588,6 +1662,10 @@
                     const hasLpClickA = hasLpClick(a) ? 1 : 0;
                     const hasLpClickB = hasLpClick(b) ? 1 : 0;
                     comparison = hasLpClickA - hasLpClickB;
+                } else if (column === 'hpLpc') {
+                    const hasHpLpcA = (a.hasHomepageClicks === true) ? 1 : 0;
+                    const hasHpLpcB = (b.hasHomepageClicks === true) ? 1 : 0;
+                    comparison = hasHpLpcA - hasHpLpcB;
                 } else if (column === 'blLpc') {
                     const hasBlLpcA = (a.businessLoans !== undefined && isNotEmpty(a.businessLoans)) ? 1 : 0;
                     const hasBlLpcB = (b.businessLoans !== undefined && isNotEmpty(b.businessLoans)) ? 1 : 0;
@@ -1641,6 +1719,10 @@
                 const hasLpClickValue = hasLpClick(impression);
                 const lpClickIcon = hasLpClickValue ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
 
+                // Check if hasHomepageClicks is true
+                const hasHomepageClicks = impression.hasHomepageClicks === true;
+                const hpLpcIcon = hasHomepageClicks ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
+
                 // Check if businessLoans key exists and is not empty
                 const hasBusinessLoans = impression.businessLoans !== undefined && isNotEmpty(impression.businessLoans);
                 const blLpcIcon = hasBusinessLoans ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
@@ -1656,6 +1738,7 @@
                         <td>${browser}</td>
                         <td class="geo-info">${location}</td>
                         <td style="text-align: center;">${lpClickIcon}</td>
+                        <td style="text-align: center;">${hpLpcIcon}</td>
                         <td style="text-align: center;">${blLpcIcon}</td>
                         <td title="${impression.referrer || ''}">${referrer}</td>
                         <td>${impression.sub1 || '—'}</td>
