@@ -257,6 +257,10 @@
             border-bottom: 1px solid #000;
         }
 
+        tbody tr:hover {
+            background-color: #e9ecef;
+        }
+
         tbody tr:last-child {
             border-bottom: none;
         }
@@ -416,6 +420,11 @@
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             text-align: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .stat-card:hover {
+            background-color: #e9ecef;
         }
 
         .stat-card .number {
@@ -610,6 +619,13 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label>Details</label>
+                    <select id="detailsToggle">
+                        <option value="false" selected>False</option>
+                        <option value="true">True</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>&nbsp;</label>
                     <button onclick="loadImpressions()">🔍 Submit</button>
                 </div>
@@ -668,6 +684,13 @@
             document.getElementById('geoFilter').value = 'usa-unknown';
             document.getElementById('botFilter').value = 'hide';
             document.getElementById('mainTableSelect').value = 'all-impressions';
+            document.getElementById('detailsToggle').value = 'false';
+            
+            // Add event listener for Details dropdown
+            document.getElementById('detailsToggle').addEventListener('change', toggleDetailsColumns);
+            
+            // Apply details column visibility on page load
+            toggleDetailsColumns();
             
             // Automatically load impressions with default filters
             loadImpressions();
@@ -677,6 +700,17 @@
         document.getElementById('apiUrl').addEventListener('change', (e) => {
             localStorage.setItem(API_URL_KEY, e.target.value);
         });
+
+        // Toggle details columns visibility
+        function toggleDetailsColumns() {
+            const detailsToggle = document.getElementById('detailsToggle');
+            if (!detailsToggle) return;
+            const showDetails = detailsToggle.value === 'true';
+            const columns = document.querySelectorAll('.details-column');
+            columns.forEach(col => {
+                col.style.display = showDetails ? '' : 'none';
+            });
+        }
 
         function resetFilters() {
             // Reset date to today
@@ -813,6 +847,9 @@
                     if (selectedTable) {
                         showSelectedTable(selectedTable);
                     }
+                    
+                    // Apply details column visibility
+                    toggleDetailsColumns();
                 }
             } catch (error) {
                 showError(`Error loading impressions: ${error.message}`);
@@ -1472,23 +1509,23 @@
                                 Date ${getGMTOffset()}
                                 <span class="sort-arrow" id="sort-all-date">⇅</span>
                             </th>
-                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('ip')">
+                            <th class="sortable-header details-column" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('ip')">
                                 IP Address
                                 <span class="sort-arrow" id="sort-all-ip">⇅</span>
                             </th>
-                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('device')">
+                            <th class="sortable-header details-column" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('device')">
                                 Device
                                 <span class="sort-arrow" id="sort-all-device">⇅</span>
                             </th>
-                            <th class="sortable-header" style="padding: 8px 12px; text-align: center;" onclick="sortAllImpressionsTable('bot')">
+                            <th class="sortable-header details-column" style="padding: 8px 12px; text-align: center;" onclick="sortAllImpressionsTable('bot')">
                                 UA Bot
                                 <span class="sort-arrow" id="sort-all-bot">⇅</span>
                             </th>
-                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('os')">
+                            <th class="sortable-header details-column" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('os')">
                                 OP
                                 <span class="sort-arrow" id="sort-all-os">⇅</span>
                             </th>
-                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('browser')">
+                            <th class="sortable-header details-column" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('browser')">
                                 Browser
                                 <span class="sort-arrow" id="sort-all-browser">⇅</span>
                             </th>
@@ -1507,6 +1544,18 @@
                             <th class="sortable-header" style="padding: 8px 12px; text-align: center;" onclick="sortAllImpressionsTable('blLpc')">
                                 BL LPC
                                 <span class="sort-arrow" id="sort-all-blLpc">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px; text-align: center;" onclick="sortAllImpressionsTable('csLpc')">
+                                CS LPC
+                                <span class="sort-arrow" id="sort-all-csLpc">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px; text-align: center;" onclick="sortAllImpressionsTable('slLpc')">
+                                SL LPC
+                                <span class="sort-arrow" id="sort-all-slLpc">⇅</span>
+                            </th>
+                            <th class="sortable-header" style="padding: 8px 12px; text-align: center;" onclick="sortAllImpressionsTable('plLpc')">
+                                PL LPC
+                                <span class="sort-arrow" id="sort-all-plLpc">⇅</span>
                             </th>
                             <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('referrer')">
                                 Referrer
@@ -1570,19 +1619,34 @@
                 const hasBusinessLoans = impression.businessLoans !== undefined && isNotEmpty(impression.businessLoans);
                 const blLpcIcon = hasBusinessLoans ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
 
+                // Check if creditScore key exists and is not empty
+                const hasCreditScore = impression.creditScore !== undefined && isNotEmpty(impression.creditScore);
+                const csLpcIcon = hasCreditScore ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
+
+                // Check if studentLoans key exists and is not empty
+                const hasStudentLoans = impression.studentLoans !== undefined && isNotEmpty(impression.studentLoans);
+                const slLpcIcon = hasStudentLoans ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
+
+                // Check if personalLoans key exists and is not empty
+                const hasPersonalLoans = impression.personalLoans !== undefined && isNotEmpty(impression.personalLoans);
+                const plLpcIcon = hasPersonalLoans ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
+
                 html += `
                     <tr>
                         <td class="id-cell" onclick="copyToClipboard('${id}')" title="Click to copy ID">${id}</td>
                         <td>${date}</td>
-                        <td>${impression.userIp || 'N/A'}</td>
-                        <td>${deviceBadge}</td>
-                        <td>${isBot}</td>
-                        <td>${os}</td>
-                        <td>${browser}</td>
+                        <td class="details-column">${impression.userIp || 'N/A'}</td>
+                        <td class="details-column">${deviceBadge}</td>
+                        <td class="details-column">${isBot}</td>
+                        <td class="details-column">${os}</td>
+                        <td class="details-column">${browser}</td>
                         <td class="geo-info">${location}</td>
                         <td style="text-align: center;">${lpClickIcon}</td>
                         <td style="text-align: center;">${hpLpcIcon}</td>
                         <td style="text-align: center;">${blLpcIcon}</td>
+                        <td style="text-align: center;">${csLpcIcon}</td>
+                        <td style="text-align: center;">${slLpcIcon}</td>
+                        <td style="text-align: center;">${plLpcIcon}</td>
                         <td title="${impression.referrer || ''}">${referrer}</td>
                         <td>${impression.sub1 || '—'}</td>
                         <td>${impression.sub2 || '—'}</td>
@@ -1670,6 +1734,18 @@
                     const hasBlLpcA = (a.businessLoans !== undefined && isNotEmpty(a.businessLoans)) ? 1 : 0;
                     const hasBlLpcB = (b.businessLoans !== undefined && isNotEmpty(b.businessLoans)) ? 1 : 0;
                     comparison = hasBlLpcA - hasBlLpcB;
+                } else if (column === 'csLpc') {
+                    const hasCsLpcA = (a.creditScore !== undefined && isNotEmpty(a.creditScore)) ? 1 : 0;
+                    const hasCsLpcB = (b.creditScore !== undefined && isNotEmpty(b.creditScore)) ? 1 : 0;
+                    comparison = hasCsLpcA - hasCsLpcB;
+                } else if (column === 'slLpc') {
+                    const hasSlLpcA = (a.studentLoans !== undefined && isNotEmpty(a.studentLoans)) ? 1 : 0;
+                    const hasSlLpcB = (b.studentLoans !== undefined && isNotEmpty(b.studentLoans)) ? 1 : 0;
+                    comparison = hasSlLpcA - hasSlLpcB;
+                } else if (column === 'plLpc') {
+                    const hasPlLpcA = (a.personalLoans !== undefined && isNotEmpty(a.personalLoans)) ? 1 : 0;
+                    const hasPlLpcB = (b.personalLoans !== undefined && isNotEmpty(b.personalLoans)) ? 1 : 0;
+                    comparison = hasPlLpcA - hasPlLpcB;
                 } else if (column === 'referrer') {
                     const referrerA = (a.referrer || '').toString();
                     const referrerB = (b.referrer || '').toString();
@@ -1727,19 +1803,34 @@
                 const hasBusinessLoans = impression.businessLoans !== undefined && isNotEmpty(impression.businessLoans);
                 const blLpcIcon = hasBusinessLoans ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
 
+                // Check if creditScore key exists and is not empty
+                const hasCreditScore = impression.creditScore !== undefined && isNotEmpty(impression.creditScore);
+                const csLpcIcon = hasCreditScore ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
+
+                // Check if studentLoans key exists and is not empty
+                const hasStudentLoans = impression.studentLoans !== undefined && isNotEmpty(impression.studentLoans);
+                const slLpcIcon = hasStudentLoans ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
+
+                // Check if personalLoans key exists and is not empty
+                const hasPersonalLoans = impression.personalLoans !== undefined && isNotEmpty(impression.personalLoans);
+                const plLpcIcon = hasPersonalLoans ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
+
                 html += `
                     <tr>
                         <td class="id-cell" onclick="copyToClipboard('${id}')" title="Click to copy ID">${id}</td>
                         <td>${date}</td>
-                        <td>${impression.userIp || 'N/A'}</td>
-                        <td>${deviceBadge}</td>
-                        <td>${isBot}</td>
-                        <td>${os}</td>
-                        <td>${browser}</td>
+                        <td class="details-column">${impression.userIp || 'N/A'}</td>
+                        <td class="details-column">${deviceBadge}</td>
+                        <td class="details-column">${isBot}</td>
+                        <td class="details-column">${os}</td>
+                        <td class="details-column">${browser}</td>
                         <td class="geo-info">${location}</td>
                         <td style="text-align: center;">${lpClickIcon}</td>
                         <td style="text-align: center;">${hpLpcIcon}</td>
                         <td style="text-align: center;">${blLpcIcon}</td>
+                        <td style="text-align: center;">${csLpcIcon}</td>
+                        <td style="text-align: center;">${slLpcIcon}</td>
+                        <td style="text-align: center;">${plLpcIcon}</td>
                         <td title="${impression.referrer || ''}">${referrer}</td>
                         <td>${impression.sub1 || '—'}</td>
                         <td>${impression.sub2 || '—'}</td>
@@ -1753,6 +1844,9 @@
             });
 
             tbody.innerHTML = html;
+            
+            // Apply details column visibility after sorting
+            toggleDetailsColumns();
         }
 
         function createCategoryImpressionsTable(impressions, pageKey, pageLabel) {
