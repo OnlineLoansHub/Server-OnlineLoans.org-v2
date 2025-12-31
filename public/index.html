@@ -663,6 +663,14 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label>Sub2</label>
+                    <select id="sub2Filter">
+                        <option value="all" selected>All</option>
+                        <option value="23415398377">23415398377</option>
+                        <option value="23400814959">23400814959</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>&nbsp;</label>
                     <button onclick="loadImpressions()">🔍 Submit</button>
                 </div>
@@ -722,6 +730,7 @@
             document.getElementById('botFilter').value = 'hide';
             document.getElementById('mainTableSelect').value = 'all-impressions';
             document.getElementById('detailsToggle').value = 'false';
+            document.getElementById('sub2Filter').value = 'all';
             
             // Add event listener for Details dropdown
             document.getElementById('detailsToggle').addEventListener('change', toggleDetailsColumns);
@@ -763,6 +772,9 @@
             // Reset bot filter to hide (default)
             document.getElementById('botFilter').value = 'hide';
 
+            // Reset sub2 filter to all (default)
+            document.getElementById('sub2Filter').value = 'all';
+
             // Reset table selector to default (All Impressions)
             document.getElementById('mainTableSelect').value = 'all-impressions';
             const tableContainer = document.getElementById('mainTableContainer');
@@ -777,6 +789,7 @@
             const dateFilterType = document.getElementById('dateFilterType').value;
             const geoFilter = document.getElementById('geoFilter').value;
             const botFilter = document.getElementById('botFilter').value;
+            const sub2Filter = document.getElementById('sub2Filter').value;
             const contentDiv = document.getElementById('content');
 
             if (!apiUrl) {
@@ -867,6 +880,14 @@
                     });
                 }
                 // "Show All" (botFilter === 'all') shows all impressions - no filtering needed
+
+                // Filter by Sub2
+                if (sub2Filter !== 'all') {
+                    impressions = impressions.filter(imp => {
+                        return imp.sub2 === sub2Filter;
+                    });
+                }
+                // "All" (sub2Filter === 'all') shows all impressions - no filtering needed
 
                 // Display tables
                 if (impressions.length === 0) {
@@ -1932,12 +1953,13 @@
                         <tr>
                             <th>ID</th>
                             <th>Date ${getGMTOffset()}</th>
-                            <th>IP Address</th>
-                            <th>Device</th>
-                            <th>UA Bot</th>
-                            <th>OP</th>
-                            <th>Browser</th>
+                            <th class="details-column">IP Address</th>
+                            <th class="details-column">Device</th>
+                            <th class="details-column">UA Bot</th>
+                            <th class="details-column">OP</th>
+                            <th class="details-column">Browser</th>
                             <th>Location</th>
+                            <th>Brand</th>
                             <th>Referrer</th>
                             <th>Sub1</th>
                             <th>Sub2</th>
@@ -1950,6 +1972,9 @@
                     </thead>
                     <tbody>
             `;
+
+            // Helper function to escape HTML attributes
+            const escapeForAttr = (val) => String(val || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
             filteredImpressions.forEach(impression => {
                 const id = impression._id || impression.id;
@@ -1964,16 +1989,25 @@
                     (impression.referrer.length > 60 ? impression.referrer.substring(0, 60) + '...' : impression.referrer) 
                     : '—';
 
+                // Extract clicked brands from pageData
+                const pageData = impression[pageKey];
+                let clickedBrands = '—';
+                if (pageData !== undefined && pageData !== null && typeof pageData === 'object') {
+                    const brands = Object.keys(pageData).filter(brandName => pageData[brandName] === true);
+                    clickedBrands = brands.length > 0 ? brands.join(', ') : '—';
+                }
+
                 html += `
                     <tr>
                         <td class="id-cell" onclick="copyToClipboard('${id}')" title="Click to copy ID">${id}</td>
                         <td>${date}</td>
-                        <td>${impression.userIp || 'N/A'}</td>
-                        <td>${deviceBadge}</td>
-                        <td>${isBot}</td>
-                        <td>${os}</td>
-                        <td>${browser}</td>
+                        <td class="details-column">${impression.userIp || 'N/A'}</td>
+                        <td class="details-column">${deviceBadge}</td>
+                        <td class="details-column">${isBot}</td>
+                        <td class="details-column">${os}</td>
+                        <td class="details-column">${browser}</td>
                         <td class="geo-info">${location}</td>
+                        <td data-full-value="${escapeForAttr(clickedBrands)}" onclick="copyCellContent(event)" title="Click to copy">${clickedBrands}</td>
                         <td title="${impression.referrer || ''}">${referrer}</td>
                         <td class="sub1-column">${impression.sub1 || '—'}</td>
                         <td>${impression.sub2 || '—'}</td>
