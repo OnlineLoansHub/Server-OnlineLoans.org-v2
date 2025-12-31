@@ -273,6 +273,11 @@
             vertical-align: middle;
             text-align: left;
             white-space: nowrap;
+            cursor: pointer;
+        }
+
+        td:hover {
+            background-color: #f0f0f0;
         }
 
         .badge {
@@ -1606,6 +1611,7 @@
                 const referrer = impression.referrer ? 
                     (impression.referrer.length > 60 ? impression.referrer.substring(0, 60) + '...' : impression.referrer) 
                     : '—';
+                const fullReferrer = impression.referrer || '—';
 
                 // Check if user has any LP clicks
                 const hasLpClickValue = hasLpClick(impression);
@@ -1631,30 +1637,33 @@
                 const hasPersonalLoans = impression.personalLoans !== undefined && isNotEmpty(impression.personalLoans);
                 const plLpcIcon = hasPersonalLoans ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
 
+                // Escape values for data attributes
+                const escapeForAttr = (val) => String(val || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
                 html += `
                     <tr>
                         <td class="id-cell" onclick="copyToClipboard('${id}')" title="Click to copy ID">${id}</td>
-                        <td>${date}</td>
-                        <td class="details-column">${impression.userIp || 'N/A'}</td>
-                        <td class="details-column">${deviceBadge}</td>
-                        <td class="details-column">${isBot}</td>
-                        <td class="details-column">${os}</td>
-                        <td class="details-column">${browser}</td>
-                        <td class="geo-info">${location}</td>
-                        <td style="text-align: center;">${lpClickIcon}</td>
-                        <td style="text-align: center;">${hpLpcIcon}</td>
-                        <td style="text-align: center;">${blLpcIcon}</td>
-                        <td style="text-align: center;">${csLpcIcon}</td>
-                        <td style="text-align: center;">${slLpcIcon}</td>
-                        <td style="text-align: center;">${plLpcIcon}</td>
-                        <td title="${impression.referrer || ''}">${referrer}</td>
-                        <td>${impression.sub1 || '—'}</td>
-                        <td>${impression.sub2 || '—'}</td>
-                        <td>${impression.sub3 || '—'}</td>
-                        <td>${impression.sub4 || '—'}</td>
-                        <td>${impression.sub5 || '—'}</td>
-                        <td>${impression.sub6 || '—'}</td>
-                        <td>${impression.sub7 || '—'}</td>
+                        <td data-full-value="${escapeForAttr(date)}" onclick="copyCellContent(event)" title="Click to copy">${date}</td>
+                        <td class="details-column" data-full-value="${escapeForAttr(impression.userIp || 'N/A')}" onclick="copyCellContent(event)" title="Click to copy">${impression.userIp || 'N/A'}</td>
+                        <td class="details-column" data-full-value="${escapeForAttr(deviceBadge)}" onclick="copyCellContent(event)" title="Click to copy">${deviceBadge}</td>
+                        <td class="details-column" data-full-value="${escapeForAttr(isBot)}" onclick="copyCellContent(event)" title="Click to copy">${isBot}</td>
+                        <td class="details-column" data-full-value="${escapeForAttr(os)}" onclick="copyCellContent(event)" title="Click to copy">${os}</td>
+                        <td class="details-column" data-full-value="${escapeForAttr(browser)}" onclick="copyCellContent(event)" title="Click to copy">${browser}</td>
+                        <td class="geo-info" data-full-value="${escapeForAttr(location)}" onclick="copyCellContent(event)" title="Click to copy">${location}</td>
+                        <td style="text-align: center;" data-full-value="${escapeForAttr(lpClickIcon)}" onclick="copyCellContent(event)" title="Click to copy">${lpClickIcon}</td>
+                        <td style="text-align: center;" data-full-value="${escapeForAttr(hpLpcIcon)}" onclick="copyCellContent(event)" title="Click to copy">${hpLpcIcon}</td>
+                        <td style="text-align: center;" data-full-value="${escapeForAttr(blLpcIcon)}" onclick="copyCellContent(event)" title="Click to copy">${blLpcIcon}</td>
+                        <td style="text-align: center;" data-full-value="${escapeForAttr(csLpcIcon)}" onclick="copyCellContent(event)" title="Click to copy">${csLpcIcon}</td>
+                        <td style="text-align: center;" data-full-value="${escapeForAttr(slLpcIcon)}" onclick="copyCellContent(event)" title="Click to copy">${slLpcIcon}</td>
+                        <td style="text-align: center;" data-full-value="${escapeForAttr(plLpcIcon)}" onclick="copyCellContent(event)" title="Click to copy">${plLpcIcon}</td>
+                        <td data-full-value="${escapeForAttr(fullReferrer)}" onclick="copyCellContent(event)" title="Click to copy full referrer">${referrer}</td>
+                        <td data-full-value="${escapeForAttr(impression.sub1 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub1 || '—'}</td>
+                        <td data-full-value="${escapeForAttr(impression.sub2 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub2 || '—'}</td>
+                        <td data-full-value="${escapeForAttr(impression.sub3 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub3 || '—'}</td>
+                        <td data-full-value="${escapeForAttr(impression.sub4 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub4 || '—'}</td>
+                        <td data-full-value="${escapeForAttr(impression.sub5 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub5 || '—'}</td>
+                        <td data-full-value="${escapeForAttr(impression.sub6 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub6 || '—'}</td>
+                        <td data-full-value="${escapeForAttr(impression.sub7 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub7 || '—'}</td>
                     </tr>
                 `;
             });
@@ -1790,6 +1799,7 @@
                 const referrer = impression.referrer ? 
                     (impression.referrer.length > 60 ? impression.referrer.substring(0, 60) + '...' : impression.referrer) 
                     : '—';
+                const fullReferrer = impression.referrer || '—';
 
                 // Check if user has any LP clicks
                 const hasLpClickValue = hasLpClick(impression);
@@ -1815,30 +1825,33 @@
                 const hasPersonalLoans = impression.personalLoans !== undefined && isNotEmpty(impression.personalLoans);
                 const plLpcIcon = hasPersonalLoans ? '<span style="color: #155724; font-weight: 900; font-size: 16px;">✓</span>' : '<span style="color: #000;">—</span>';
 
+                // Escape values for data attributes
+                const escapeForAttr = (val) => String(val || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
                 html += `
                     <tr>
                         <td class="id-cell" onclick="copyToClipboard('${id}')" title="Click to copy ID">${id}</td>
-                        <td>${date}</td>
-                        <td class="details-column">${impression.userIp || 'N/A'}</td>
-                        <td class="details-column">${deviceBadge}</td>
-                        <td class="details-column">${isBot}</td>
-                        <td class="details-column">${os}</td>
-                        <td class="details-column">${browser}</td>
-                        <td class="geo-info">${location}</td>
-                        <td style="text-align: center;">${lpClickIcon}</td>
-                        <td style="text-align: center;">${hpLpcIcon}</td>
-                        <td style="text-align: center;">${blLpcIcon}</td>
-                        <td style="text-align: center;">${csLpcIcon}</td>
-                        <td style="text-align: center;">${slLpcIcon}</td>
-                        <td style="text-align: center;">${plLpcIcon}</td>
-                        <td title="${impression.referrer || ''}">${referrer}</td>
-                        <td>${impression.sub1 || '—'}</td>
-                        <td>${impression.sub2 || '—'}</td>
-                        <td>${impression.sub3 || '—'}</td>
-                        <td>${impression.sub4 || '—'}</td>
-                        <td>${impression.sub5 || '—'}</td>
-                        <td>${impression.sub6 || '—'}</td>
-                        <td>${impression.sub7 || '—'}</td>
+                        <td data-full-value="${escapeForAttr(date)}" onclick="copyCellContent(event)" title="Click to copy">${date}</td>
+                        <td class="details-column" data-full-value="${escapeForAttr(impression.userIp || 'N/A')}" onclick="copyCellContent(event)" title="Click to copy">${impression.userIp || 'N/A'}</td>
+                        <td class="details-column" data-full-value="${escapeForAttr(deviceBadge)}" onclick="copyCellContent(event)" title="Click to copy">${deviceBadge}</td>
+                        <td class="details-column" data-full-value="${escapeForAttr(isBot)}" onclick="copyCellContent(event)" title="Click to copy">${isBot}</td>
+                        <td class="details-column" data-full-value="${escapeForAttr(os)}" onclick="copyCellContent(event)" title="Click to copy">${os}</td>
+                        <td class="details-column" data-full-value="${escapeForAttr(browser)}" onclick="copyCellContent(event)" title="Click to copy">${browser}</td>
+                        <td class="geo-info" data-full-value="${escapeForAttr(location)}" onclick="copyCellContent(event)" title="Click to copy">${location}</td>
+                        <td style="text-align: center;" data-full-value="${escapeForAttr(lpClickIcon)}" onclick="copyCellContent(event)" title="Click to copy">${lpClickIcon}</td>
+                        <td style="text-align: center;" data-full-value="${escapeForAttr(hpLpcIcon)}" onclick="copyCellContent(event)" title="Click to copy">${hpLpcIcon}</td>
+                        <td style="text-align: center;" data-full-value="${escapeForAttr(blLpcIcon)}" onclick="copyCellContent(event)" title="Click to copy">${blLpcIcon}</td>
+                        <td style="text-align: center;" data-full-value="${escapeForAttr(csLpcIcon)}" onclick="copyCellContent(event)" title="Click to copy">${csLpcIcon}</td>
+                        <td style="text-align: center;" data-full-value="${escapeForAttr(slLpcIcon)}" onclick="copyCellContent(event)" title="Click to copy">${slLpcIcon}</td>
+                        <td style="text-align: center;" data-full-value="${escapeForAttr(plLpcIcon)}" onclick="copyCellContent(event)" title="Click to copy">${plLpcIcon}</td>
+                        <td data-full-value="${escapeForAttr(fullReferrer)}" onclick="copyCellContent(event)" title="Click to copy full referrer">${referrer}</td>
+                        <td data-full-value="${escapeForAttr(impression.sub1 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub1 || '—'}</td>
+                        <td data-full-value="${escapeForAttr(impression.sub2 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub2 || '—'}</td>
+                        <td data-full-value="${escapeForAttr(impression.sub3 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub3 || '—'}</td>
+                        <td data-full-value="${escapeForAttr(impression.sub4 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub4 || '—'}</td>
+                        <td data-full-value="${escapeForAttr(impression.sub5 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub5 || '—'}</td>
+                        <td data-full-value="${escapeForAttr(impression.sub6 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub6 || '—'}</td>
+                        <td data-full-value="${escapeForAttr(impression.sub7 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub7 || '—'}</td>
                     </tr>
                 `;
             });
@@ -2095,6 +2108,76 @@
                 }
                 document.body.removeChild(textArea);
             });
+        }
+
+        // Helper function to escape HTML for data attributes
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Function to copy cell content from data attribute
+        function copyCellContent(event) {
+            const cell = event.target.closest('td');
+            if (!cell) return;
+            
+            // Stop event propagation to prevent row hover from interfering
+            event.stopPropagation();
+            
+            if (cell.dataset.fullValue !== undefined) {
+                // Decode HTML entities and get plain text
+                const fullValue = cell.dataset.fullValue;
+                // Create a temporary element to decode HTML entities
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = fullValue;
+                const plainText = tempDiv.textContent || tempDiv.innerText || fullValue;
+                copyToClipboard(plainText.trim());
+            } else {
+                // Fallback: try to get text content (strip HTML)
+                const text = cell.textContent || cell.innerText || '';
+                copyToClipboard(text.trim());
+            }
+        }
+
+        // Helper function to escape HTML for data attributes
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Function to copy cell content from data attribute
+        function copyCellContent(event) {
+            const cell = event.target.closest('td');
+            if (!cell) return;
+            
+            // Stop event propagation to prevent row hover from interfering
+            event.stopPropagation();
+            
+            if (cell.dataset.fullValue !== undefined) {
+                // Decode HTML entities and get plain text
+                const fullValue = cell.dataset.fullValue;
+                // Create a temporary element to decode HTML entities
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = fullValue;
+                const plainText = tempDiv.textContent || tempDiv.innerText || fullValue;
+                copyToClipboard(plainText.trim());
+            } else {
+                // Fallback: try to get text content (strip HTML)
+                const text = cell.textContent || cell.innerText || '';
+                copyToClipboard(text.trim());
+            }
+        }
+
+        // Helper function to create a clickable cell with full value stored
+        function createClickableCell(displayText, fullValue, className = '', style = '') {
+            const escapedFullValue = (fullValue || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            const classAttr = className ? `class="${className}"` : '';
+            const styleAttr = style ? `style="${style}"` : '';
+            return `<td ${classAttr} ${styleAttr} data-full-value="${escapedFullValue}" onclick="copyCellContent(event)" title="Click to copy">${displayText}</td>`;
         }
 
         async function cleanupImpressions() {
