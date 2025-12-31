@@ -280,6 +280,12 @@
             background-color: #f0f0f0;
         }
 
+        .sub1-column {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .badge {
             display: inline-block;
             padding: 4px 12px;
@@ -413,37 +419,63 @@
             border-bottom: 2px solid #e9ecef;
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .stat-card {
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: background-color 0.2s ease;
+            table-layout: auto;
         }
 
-        .stat-card:hover {
+        .stats-table thead {
+            background: white;
+            color: black;
+        }
+
+        .stats-table thead th {
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 14px;
+            white-space: nowrap;
+            border-bottom: 1px solid #000;
+            border-right: 1px solid #000;
+            color: black;
+        }
+
+        .stats-table thead th:last-child {
+            border-right: none;
+        }
+
+        .stats-table tbody tr {
+            border-bottom: 1px solid #000;
+        }
+
+        .stats-table tbody tr:hover {
             background-color: #e9ecef;
         }
 
-        .stat-card .number {
-            font-size: 2.5em;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 8px;
+        .stats-table tbody tr:last-child {
+            border-bottom: none;
         }
 
-        .stat-card .label {
+        .stats-table tbody td {
+            padding: 6px 12px;
             font-size: 14px;
-            color: #6c757d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-weight: 400;
+            color: black;
+            vertical-align: middle;
+            text-align: left;
+            white-space: nowrap;
+            cursor: pointer;
+            border-right: 1px solid #000;
+        }
+
+        .stats-table tbody td:last-child {
+            border-right: none;
+        }
+
+        .stats-table tbody td:hover {
+            background-color: #f0f0f0;
         }
 
         .navbar {
@@ -956,36 +988,51 @@
             // Calculate total LP clicks as sum of homepage clicks + all category clicks
             const totalLpClicks = totalHomePageClicks + Object.values(categoryCounts).reduce((sum, count) => sum + count, 0);
 
-            // Stats section at the top
-            let statsCards = `
-                <div class="stat-card">
-                    <div class="number">${impressions.length}</div>
-                    <div class="label">Total Impressions</div>
-                </div>
-                <div class="stat-card">
-                    <div class="number">${totalLpClicks}</div>
-                    <div class="label">Total LP Clicks</div>
-                </div>
-                <div class="stat-card">
-                    <div class="number">${totalHomePageClicks}</div>
-                    <div class="label">Total Home Page Clicks</div>
-                </div>
+            // Calculate LP clicks ratio as percentage of Total Impressions
+            const lpClicksRatio = impressions.length > 0 
+                ? ((totalLpClicks / impressions.length) * 100).toFixed(2) 
+                : '0.00';
+
+            // Stats table at the top - horizontal layout
+            let statsTableHeaders = `
+                <th>Total Impressions</th>
+                <th>Total LP Clicks</th>
+                <th>Ratio</th>
+                <th>Business Loans</th>
+                <th>Total Home Page Clicks</th>
             `;
 
-            // Add stat cards for each category
+            let statsTableValues = `
+                <td>${impressions.length}</td>
+                <td>${totalLpClicks}</td>
+                <td>${lpClicksRatio}%</td>
+                <td>${categoryCounts['Business Loans']}</td>
+                <td>${totalHomePageClicks}</td>
+            `;
+
+            // Add headers and values for each category (excluding Business Loans as it's already added)
             categories.forEach(category => {
-                statsCards += `
-                    <div class="stat-card">
-                        <div class="number">${categoryCounts[category]}</div>
-                        <div class="label">Total ${category} LP Clicks</div>
-                    </div>
-                `;
+                if (category !== 'Business Loans') {
+                    statsTableHeaders += `<th>${category}</th>`;
+                    statsTableValues += `<td>${categoryCounts[category]}</td>`;
+                }
             });
 
             html += `
                 <div class="stats-section">
-                    <div class="stats-grid">
-                        ${statsCards}
+                    <div class="table-wrapper">
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    ${statsTableHeaders}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    ${statsTableValues}
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             `;
@@ -1566,7 +1613,7 @@
                                 Referrer
                                 <span class="sort-arrow" id="sort-all-referrer">⇅</span>
                             </th>
-                            <th class="sortable-header" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('sub1')">
+                            <th class="sortable-header sub1-column" style="padding: 8px 12px;" onclick="sortAllImpressionsTable('sub1')">
                                 Sub1
                                 <span class="sort-arrow" id="sort-all-sub1">⇅</span>
                             </th>
@@ -1657,7 +1704,7 @@
                         <td style="text-align: center;" data-full-value="${escapeForAttr(slLpcIcon)}" onclick="copyCellContent(event)" title="Click to copy">${slLpcIcon}</td>
                         <td style="text-align: center;" data-full-value="${escapeForAttr(plLpcIcon)}" onclick="copyCellContent(event)" title="Click to copy">${plLpcIcon}</td>
                         <td data-full-value="${escapeForAttr(fullReferrer)}" onclick="copyCellContent(event)" title="Click to copy full referrer">${referrer}</td>
-                        <td data-full-value="${escapeForAttr(impression.sub1 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub1 || '—'}</td>
+                        <td class="sub1-column" data-full-value="${escapeForAttr(impression.sub1 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub1 || '—'}</td>
                         <td data-full-value="${escapeForAttr(impression.sub2 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub2 || '—'}</td>
                         <td data-full-value="${escapeForAttr(impression.sub3 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub3 || '—'}</td>
                         <td data-full-value="${escapeForAttr(impression.sub4 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub4 || '—'}</td>
@@ -1845,7 +1892,7 @@
                         <td style="text-align: center;" data-full-value="${escapeForAttr(slLpcIcon)}" onclick="copyCellContent(event)" title="Click to copy">${slLpcIcon}</td>
                         <td style="text-align: center;" data-full-value="${escapeForAttr(plLpcIcon)}" onclick="copyCellContent(event)" title="Click to copy">${plLpcIcon}</td>
                         <td data-full-value="${escapeForAttr(fullReferrer)}" onclick="copyCellContent(event)" title="Click to copy full referrer">${referrer}</td>
-                        <td data-full-value="${escapeForAttr(impression.sub1 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub1 || '—'}</td>
+                        <td class="sub1-column" data-full-value="${escapeForAttr(impression.sub1 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub1 || '—'}</td>
                         <td data-full-value="${escapeForAttr(impression.sub2 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub2 || '—'}</td>
                         <td data-full-value="${escapeForAttr(impression.sub3 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub3 || '—'}</td>
                         <td data-full-value="${escapeForAttr(impression.sub4 || '—')}" onclick="copyCellContent(event)" title="Click to copy">${impression.sub4 || '—'}</td>
@@ -1928,7 +1975,7 @@
                         <td>${browser}</td>
                         <td class="geo-info">${location}</td>
                         <td title="${impression.referrer || ''}">${referrer}</td>
-                        <td>${impression.sub1 || '—'}</td>
+                        <td class="sub1-column">${impression.sub1 || '—'}</td>
                         <td>${impression.sub2 || '—'}</td>
                         <td>${impression.sub3 || '—'}</td>
                         <td>${impression.sub4 || '—'}</td>
